@@ -12,11 +12,11 @@
     "noImplicitAny": false,
     "allowJs": true,
     "resolveJsonModule": true,
-    "typeRoots": ["./typings"],
+    "typeRoots": ["./typings", "./node_modules/miniprogram-api-typings"],
     "paths": {
       "@/*": ["./*"]
     },
-    "baseUrl": "."
+    "baseUrl": ".",
   },
   "include": [
     "**/*.ts",
