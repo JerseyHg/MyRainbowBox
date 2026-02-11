@@ -1,0 +1,272 @@
+<view class="page">
+  <!-- 步骤条 -->
+  <view class="steps">
+    <view class="step {{currentStep >= 0 ? 'active' : ''}} {{currentStep === 0 ? 'current' : ''}}" bindtap="goStep" data-s="0">
+      <view class="step-dot">1</view>
+      <text class="step-text">基本信息</text>
+    </view>
+    <view class="step-line {{currentStep >= 1 ? 'done' : ''}}"></view>
+    <view class="step {{currentStep >= 1 ? 'active' : ''}} {{currentStep === 1 ? 'current' : ''}}" bindtap="goStep" data-s="1">
+      <view class="step-dot">2</view>
+      <text class="step-text">个人特征</text>
+    </view>
+    <view class="step-line {{currentStep >= 2 ? 'done' : ''}}"></view>
+    <view class="step {{currentStep >= 2 ? 'active' : ''}} {{currentStep === 2 ? 'current' : ''}}" bindtap="goStep" data-s="2">
+      <view class="step-dot">3</view>
+      <text class="step-text">期待/照片</text>
+    </view>
+    <view class="step-line {{currentStep >= 3 ? 'done' : ''}}"></view>
+    <view class="step {{currentStep >= 3 ? 'active' : ''}} {{currentStep === 3 ? 'current' : ''}}" bindtap="goStep" data-s="3">
+      <view class="step-dot">4</view>
+      <text class="step-text">确认提交</text>
+    </view>
+  </view>
+
+  <!-- ===== 步骤0: 基本信息 ===== -->
+  <view wx:if="{{currentStep === 0}}">
+    <view class="card">
+      <text class="card-title">基本信息</text>
+
+      <view class="field">
+        <text class="label">* 姓名/昵称</text>
+        <input class="input" type="text" placeholder="请输入" value="{{name}}" bindinput="onInput" data-key="name" maxlength="20" />
+      </view>
+
+      <view class="field">
+        <text class="label">* 性别</text>
+        <view class="tags">
+          <text wx:for="{{genderOptions}}" wx:key="*this" class="tag {{gender === item ? 'active' : ''}}" data-key="gender" data-val="{{item}}" bindtap="onTagTap">{{item}}</text>
+        </view>
+      </view>
+
+      <view class="row">
+        <view class="field col">
+          <text class="label">* 年龄</text>
+          <input class="input" type="number" placeholder="岁" value="{{age}}" bindinput="onInput" data-key="age" />
+        </view>
+        <view class="field col">
+          <text class="label">* 身高</text>
+          <input class="input" type="number" placeholder="cm" value="{{height}}" bindinput="onInput" data-key="height" />
+        </view>
+        <view class="field col">
+          <text class="label">* 体重</text>
+          <input class="input" type="number" placeholder="kg" value="{{weight}}" bindinput="onInput" data-key="weight" />
+        </view>
+      </view>
+
+      <view class="field">
+        <text class="label">婚姻状况</text>
+        <picker range="{{maritalOptions}}" bindchange="onPick" data-key="maritalStatus">
+          <view class="input picker">{{maritalStatus || '选填'}} <text class="arrow">▾</text></view>
+        </picker>
+      </view>
+
+      <view class="field">
+        <text class="label">体型</text>
+        <view class="tags">
+          <text wx:for="{{bodyTypeOptions}}" wx:key="*this" class="tag {{bodyType === item ? 'active' : ''}}" data-key="bodyType" data-val="{{item}}" bindtap="onTagTap">{{item}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="card">
+      <text class="card-title">地域与工作</text>
+      <view class="field">
+        <text class="label">籍贯</text>
+        <input class="input" type="text" placeholder="例：北京" value="{{hometown}}" bindinput="onInput" data-key="hometown" />
+      </view>
+      <view class="field">
+        <text class="label">工作地</text>
+        <input class="input" type="text" placeholder="例：上海 浦东" value="{{workLocation}}" bindinput="onInput" data-key="workLocation" />
+      </view>
+      <view class="field">
+        <text class="label">行业</text>
+        <input class="input" type="text" placeholder="例：互联网" value="{{industry}}" bindinput="onInput" data-key="industry" />
+      </view>
+    </view>
+  </view>
+
+  <!-- ===== 步骤1: 个人特征 ===== -->
+  <view wx:if="{{currentStep === 1}}">
+    <view class="card">
+      <text class="card-title">个人特征</text>
+
+      <view class="row">
+        <view class="field col">
+          <text class="label">星座</text>
+          <picker range="{{constellationOptions}}" bindchange="onPick" data-key="constellation">
+            <view class="input picker">{{constellation || '选填'}} <text class="arrow">▾</text></view>
+          </picker>
+        </view>
+        <view class="field col">
+          <text class="label">MBTI</text>
+          <picker range="{{mbtiOptions}}" bindchange="onPick" data-key="mbti">
+            <view class="input picker">{{mbti || '选填'}} <text class="arrow">▾</text></view>
+          </picker>
+        </view>
+      </view>
+
+      <view class="field">
+        <text class="label">出柜状态</text>
+        <picker range="{{comingOutOptions}}" bindchange="onPick" data-key="comingOutStatus">
+          <view class="input picker">{{comingOutStatus || '选填'}} <text class="arrow">▾</text></view>
+        </picker>
+      </view>
+
+      <view class="field">
+        <text class="label">健康状况</text>
+        <input class="input" type="text" placeholder="如无特殊可不填" value="{{healthCondition}}" bindinput="onInput" data-key="healthCondition" />
+      </view>
+    </view>
+
+    <view class="card">
+      <text class="card-title">兴趣爱好与生活方式</text>
+      <text class="tip">选择标签或自己添加，最多10个</text>
+
+      <!-- 已选标签 -->
+      <view class="selected-hobbies" wx:if="{{selectedHobbies.length > 0}}">
+        <view class="selected-tag" wx:for="{{selectedHobbies}}" wx:key="*this">
+          <text>{{item}}</text>
+          <text class="selected-del" data-i="{{index}}" catchtap="removeHobby">✕</text>
+        </view>
+      </view>
+
+      <!-- 自定义输入 -->
+      <view class="hobby-add-row">
+        <input class="input hobby-input" type="text" placeholder="输入自定义兴趣..." value="{{customHobby}}" bindinput="onInput" data-key="customHobby" maxlength="10" />
+        <button class="hobby-add-btn" bindtap="addCustomHobby">添加</button>
+      </view>
+
+      <!-- 预设标签 -->
+      <view class="tags" style="margin-top: 20rpx;">
+        <text wx:for="{{hobbyTags}}" wx:key="*this" class="tag {{selectedHobbies.indexOf(item) >= 0 ? 'active' : ''}}" data-val="{{item}}" bindtap="toggleHobby">{{item}}</text>
+      </view>
+    </view>
+
+    <view class="card">
+      <view class="field" style="margin-bottom:0;">
+        <text class="label">自我描述</text>
+        <textarea class="textarea" placeholder="简单描述一下你自己、你的日常生活..." value="{{lifestyle}}" bindinput="onInput" data-key="lifestyle" maxlength="300" />
+      </view>
+    </view>
+  </view>
+
+  <!-- ===== 步骤2: 期待对象 + 照片 ===== -->
+  <view wx:if="{{currentStep === 2}}">
+    <view class="card">
+      <text class="card-title">期待对象</text>
+      <view class="field">
+        <text class="label">交友目的</text>
+        <input class="input" type="text" placeholder="例：找长期伴侣" value="{{expRelationship}}" bindinput="onInput" data-key="expRelationship" />
+      </view>
+      <view class="field">
+        <text class="label">期待体型</text>
+        <input class="input" type="text" placeholder="例：匀称/偏壮" value="{{expBodyType}}" bindinput="onInput" data-key="expBodyType" />
+      </view>
+      <view class="field">
+        <text class="label">外貌偏好</text>
+        <input class="input" type="text" placeholder="例：短发/干净清爽" value="{{expAppearance}}" bindinput="onInput" data-key="expAppearance" />
+      </view>
+      <view class="field">
+        <text class="label">可接受年龄</text>
+        <input class="input" type="text" placeholder="例：23-35" value="{{expAgeRange}}" bindinput="onInput" data-key="expAgeRange" />
+      </view>
+      <view class="field">
+        <text class="label">生活习惯要求</text>
+        <input class="input" type="text" placeholder="例：不抽烟" value="{{expHabits}}" bindinput="onInput" data-key="expHabits" />
+      </view>
+      <view class="field">
+        <text class="label">性格偏好</text>
+        <input class="input" type="text" placeholder="例：温柔/有主见" value="{{expPersonality}}" bindinput="onInput" data-key="expPersonality" />
+      </view>
+      <view class="field">
+        <text class="label">地域要求</text>
+        <input class="input" type="text" placeholder="例：同城优先" value="{{expLocation}}" bindinput="onInput" data-key="expLocation" />
+      </view>
+      <view class="field">
+        <text class="label">其他要求</text>
+        <textarea class="textarea" placeholder="补充其他..." value="{{expOther}}" bindinput="onInput" data-key="expOther" maxlength="200" />
+      </view>
+    </view>
+
+    <view class="card">
+      <text class="card-title">照片上传 <text class="sub">(最多6张)</text></text>
+      <text class="tip">清晰的照片可以大大提升匹配机会～</text>
+      <view class="photo-grid">
+        <view class="photo-item" wx:for="{{photos}}" wx:key="*this">
+          <image class="photo-img" src="{{item}}" mode="aspectFill" data-url="{{item}}" bindtap="previewPhoto" />
+          <view class="photo-del" data-i="{{index}}" catchtap="removePhoto">✕</view>
+        </view>
+        <view class="photo-add" bindtap="choosePhoto" wx:if="{{photos.length < 6}}">
+          <text class="add-icon">+</text>
+          <text class="add-text">添加</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="card">
+      <view class="field" style="margin-bottom:0;">
+        <text class="label">特殊说明</text>
+        <textarea class="textarea" placeholder="其他想说的话..." value="{{specialRequirements}}" bindinput="onInput" data-key="specialRequirements" maxlength="300" />
+      </view>
+    </view>
+  </view>
+
+  <!-- ===== 步骤3: 确认信息 ===== -->
+  <view wx:if="{{currentStep === 3}}">
+    <view class="card confirm-card">
+      <text class="card-title">请确认您的信息</text>
+      <text class="tip">提交后将进入审核流程</text>
+
+      <text class="section-label">基本信息</text>
+      <view class="pv-row"><text class="pv-l">姓名</text><text class="pv-r">{{name}}</text></view>
+      <view class="pv-row"><text class="pv-l">性别</text><text class="pv-r">{{gender}}</text></view>
+      <view class="pv-row"><text class="pv-l">年龄</text><text class="pv-r">{{age}}岁</text></view>
+      <view class="pv-row"><text class="pv-l">身高/体重</text><text class="pv-r">{{height}}cm / {{weight}}kg</text></view>
+      <view class="pv-row" wx:if="{{maritalStatus}}"><text class="pv-l">婚姻状况</text><text class="pv-r">{{maritalStatus}}</text></view>
+      <view class="pv-row" wx:if="{{bodyType}}"><text class="pv-l">体型</text><text class="pv-r">{{bodyType}}</text></view>
+      <view class="pv-row" wx:if="{{hometown}}"><text class="pv-l">籍贯</text><text class="pv-r">{{hometown}}</text></view>
+      <view class="pv-row" wx:if="{{workLocation}}"><text class="pv-l">工作地</text><text class="pv-r">{{workLocation}}</text></view>
+      <view class="pv-row" wx:if="{{industry}}"><text class="pv-l">行业</text><text class="pv-r">{{industry}}</text></view>
+
+      <text class="section-label" wx:if="{{constellation || mbti || comingOutStatus}}">个人特征</text>
+      <view class="pv-row" wx:if="{{constellation}}"><text class="pv-l">星座</text><text class="pv-r">{{constellation}}</text></view>
+      <view class="pv-row" wx:if="{{mbti}}"><text class="pv-l">MBTI</text><text class="pv-r">{{mbti}}</text></view>
+      <view class="pv-row" wx:if="{{comingOutStatus}}"><text class="pv-l">出柜状态</text><text class="pv-r">{{comingOutStatus}}</text></view>
+      <view class="pv-row" wx:if="{{healthCondition}}"><text class="pv-l">健康状况</text><text class="pv-r">{{healthCondition}}</text></view>
+
+      <text class="section-label" wx:if="{{selectedHobbies.length > 0}}">兴趣爱好</text>
+      <view class="pv-hobbies" wx:if="{{selectedHobbies.length > 0}}">
+        <text class="pv-hobby-tag" wx:for="{{selectedHobbies}}" wx:key="*this">{{item}}</text>
+      </view>
+
+      <view class="pv-row" wx:if="{{lifestyle}}"><text class="pv-l">自我描述</text><text class="pv-r pv-long">{{lifestyle}}</text></view>
+
+      <text class="section-label" wx:if="{{expRelationship || expBodyType || expAppearance || expAgeRange}}">期待对象</text>
+      <view class="pv-row" wx:if="{{expRelationship}}"><text class="pv-l">交友目的</text><text class="pv-r">{{expRelationship}}</text></view>
+      <view class="pv-row" wx:if="{{expBodyType}}"><text class="pv-l">期待体型</text><text class="pv-r">{{expBodyType}}</text></view>
+      <view class="pv-row" wx:if="{{expAppearance}}"><text class="pv-l">外貌偏好</text><text class="pv-r">{{expAppearance}}</text></view>
+      <view class="pv-row" wx:if="{{expAgeRange}}"><text class="pv-l">可接受年龄</text><text class="pv-r">{{expAgeRange}}</text></view>
+      <view class="pv-row" wx:if="{{expHabits}}"><text class="pv-l">生活习惯</text><text class="pv-r">{{expHabits}}</text></view>
+      <view class="pv-row" wx:if="{{expPersonality}}"><text class="pv-l">性格偏好</text><text class="pv-r">{{expPersonality}}</text></view>
+      <view class="pv-row" wx:if="{{expLocation}}"><text class="pv-l">地域要求</text><text class="pv-r">{{expLocation}}</text></view>
+
+      <text class="section-label">照片</text>
+      <view class="pv-photos" wx:if="{{photos.length > 0}}">
+        <image class="pv-photo" wx:for="{{photos}}" wx:key="*this" src="{{item}}" mode="aspectFill" />
+      </view>
+      <text class="pv-empty" wx:if="{{photos.length === 0}}">未上传照片</text>
+    </view>
+
+    <view class="confirm-tip">
+      <text>提交后资料将进入审核，审核通过后会发布到公众号。如需修改可返回上一步。</text>
+    </view>
+  </view>
+
+  <!-- 底部按钮 -->
+  <view class="bottom-bar">
+    <button class="btn-back" wx:if="{{currentStep > 0}}" bindtap="prevStep">上一步</button>
+    <button class="btn-next" wx:if="{{currentStep < 3}}" bindtap="nextStep">下一步</button>
+    <button class="btn-submit" wx:if="{{currentStep === 3}}" bindtap="onSubmit">确认并提交</button>
+  </view>
+</view>

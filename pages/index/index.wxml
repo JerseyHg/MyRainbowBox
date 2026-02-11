@@ -1,0 +1,34 @@
+<view class="page">
+  <!-- 顶部 -->
+  <view class="header">
+    <text class="emoji">🌈</text>
+    <text class="title">彩虹注册</text>
+    <text class="subtitle">遇见真实的你</text>
+  </view>
+
+  <!-- 输入区 -->
+  <view class="card">
+    <text class="label">请输入6位邀请码</text>
+    <input
+      type="text"
+      value="{{code}}"
+      bindinput="onInput"
+      placeholder="点击输入邀请码"
+      maxlength="6"
+      class="input"
+    />
+    <button
+      class="btn-main"
+      bindtap="onSubmit"
+      disabled="{{loading || code.length < 6}}"
+    >{{loading ? '验证中...' : '开始注册'}}</button>
+  </view>
+
+  <!-- 提示 -->
+  <view class="tips">
+    <text>如何获取邀请码？\n• 通过已注册用户邀请\n• 关注公众号参与活动</text>
+  </view>
+
+  <!-- 开发按钮 -->
+  <button class="btn-dev" wx:if="{{devMode}}" bindtap="onDevSkip">开发模式：跳过验证</button>
+</view>

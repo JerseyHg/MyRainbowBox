@@ -1,0 +1,10 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/profile/profile"
+  ],
+  "window": {
+    "navigationBarTitleText": "彩虹注册",
+    "navigationBarBackgroundColor": "#ffffff"
+  }
+}
