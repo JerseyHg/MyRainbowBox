@@ -3,7 +3,16 @@
  * 封装所有后端接口调用
  */
 
-const BASE_URL = 'https://your-domain.com/api/v1'  // TODO: 替换为实际域名
+/** 获取 BASE_URL（从 globalData 读取） */
+function getBaseUrl(): string {
+  const app = getApp<IAppOption>()
+  return app.globalData.baseUrl
+}
+
+/** 获取当前 openid */
+function getOpenid(): string {
+  return wx.getStorageSync('openid') || ''
+}
 
 // ========== 通用请求封装 ==========
 
@@ -20,10 +29,10 @@ function request<T = any>(options: {
   header?: Record<string, string>
 }): Promise<ApiResponse<T>> {
   return new Promise((resolve, reject) => {
-    const openid = wx.getStorageSync('openid') || ''
+    const openid = getOpenid()
 
     wx.request({
-      url: `${BASE_URL}${options.url}`,
+      url: `${getBaseUrl()}${options.url}`,
       method: options.method || 'GET',
       data: options.data,
       header: {
@@ -35,8 +44,9 @@ function request<T = any>(options: {
         if (res.statusCode >= 200 && res.statusCode < 300) {
           resolve(res.data as ApiResponse<T>)
         } else if (res.statusCode === 401) {
-          // 未授权，跳转到首页重新登录
+          // 未授权，清除登录态并跳回首页
           wx.removeStorageSync('openid')
+          wx.removeStorageSync('hasProfile')
           wx.reLaunch({ url: '/pages/index/index' })
           reject(new Error('未授权，请重新登录'))
         } else {
@@ -45,7 +55,7 @@ function request<T = any>(options: {
         }
       },
       fail(err) {
-        reject(new Error(err.errMsg || '网络错误'))
+        reject(new Error(err.errMsg || '网络错误，请检查网络'))
       },
     })
   })
@@ -64,7 +74,7 @@ export interface VerifyResult {
 export function verifyInvitation(invitationCode: string, wxCode: string): Promise<VerifyResult> {
   return new Promise((resolve, reject) => {
     wx.request({
-      url: `${BASE_URL}/invitation/verify`,
+      url: `${getBaseUrl()}/invitation/verify`,
       method: 'POST',
       data: {
         invitation_code: invitationCode,
@@ -75,7 +85,8 @@ export function verifyInvitation(invitationCode: string, wxCode: string): Promis
         if (res.statusCode === 200) {
           resolve(res.data as VerifyResult)
         } else {
-          reject(new Error(res.data?.detail || '验证失败'))
+          const errMsg = res.data?.detail || res.data?.message || '验证失败'
+          reject(new Error(errMsg))
         }
       },
       fail(err) {
@@ -158,13 +169,13 @@ export function archiveProfile(): Promise<ApiResponse> {
 
 // ========== 文件上传 ==========
 
-/** 上传照片 */
-export function uploadPhoto(filePath: string): Promise<ApiResponse> {
+/** 上传单张照片，返回服务器URL */
+export function uploadPhoto(filePath: string): Promise<string> {
   return new Promise((resolve, reject) => {
-    const openid = wx.getStorageSync('openid') || ''
+    const openid = getOpenid()
 
     wx.uploadFile({
-      url: `${BASE_URL}/upload/photo`,
+      url: `${getBaseUrl()}/upload/photo`,
       filePath,
       name: 'file',
       header: {
@@ -172,10 +183,18 @@ export function uploadPhoto(filePath: string): Promise<ApiResponse> {
       },
       success(res) {
         if (res.statusCode === 200) {
-          const data = JSON.parse(res.data)
-          resolve(data)
+          try {
+            const data = JSON.parse(res.data)
+            if (data.success && data.data?.url) {
+              resolve(data.data.url)
+            } else {
+              reject(new Error(data.message || '上传失败'))
+            }
+          } catch (e) {
+            reject(new Error('解析响应失败'))
+          }
         } else {
-          reject(new Error('上传失败'))
+          reject(new Error('上传失败，状态码: ' + res.statusCode))
         }
       },
       fail(err) {
@@ -183,6 +202,37 @@ export function uploadPhoto(filePath: string): Promise<ApiResponse> {
       },
     })
   })
+}
+
+/**
+ * 批量上传照片
+ * 返回已上传的服务器URL数组
+ * 跳过已经是服务器路径的照片(以 /uploads 或 http 开头)
+ */
+export async function uploadPhotos(
+  localPaths: string[],
+  onProgress?: (uploaded: number, total: number) => void
+): Promise<string[]> {
+  const urls: string[] = []
+  const total = localPaths.length
+
+  for (let i = 0; i < total; i++) {
+    const path = localPaths[i]
+
+    // 如果已经是服务器URL则跳过
+    if (path.startsWith('/uploads') || path.startsWith('http')) {
+      urls.push(path)
+    } else {
+      const url = await uploadPhoto(path)
+      urls.push(url)
+    }
+
+    if (onProgress) {
+      onProgress(i + 1, total)
+    }
+  }
+
+  return urls
 }
 
 export default {
@@ -193,4 +243,5 @@ export default {
   updateProfile,
   archiveProfile,
   uploadPhoto,
+  uploadPhotos,
 }

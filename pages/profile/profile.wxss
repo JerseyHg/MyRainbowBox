@@ -164,3 +164,11 @@
   font-size: 32rpx;
 }
 .btn-back::after { border: none; }
+.photo-status {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex; align-items: center; justify-content: center;
+}
+.photo-status-text {
+  color: #fff; font-size: 22rpx;
+}

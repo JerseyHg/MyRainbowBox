@@ -2,11 +2,11 @@
   "compilerOptions": {
     "strict": true,
     "target": "ES2017",
-    "module": "ES2015",
+    "module": "CommonJS",
     "moduleResolution": "node",
     "lib": ["ES2017"],
-    "outDir": "./miniprogram",
-    "rootDir": "./miniprogram",
+    "outDir": "./",
+    "rootDir": "./",
     "declaration": true,
     "sourceMap": true,
     "noImplicitAny": false,
@@ -14,15 +14,16 @@
     "resolveJsonModule": true,
     "typeRoots": ["./typings"],
     "paths": {
-      "@/*": ["./miniprogram/*"]
+      "@/*": ["./*"]
     },
     "baseUrl": "."
   },
   "include": [
-    "miniprogram/**/*.ts",
+    "**/*.ts",
     "typings/**/*.d.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "miniprogram_npm"
   ]
 }

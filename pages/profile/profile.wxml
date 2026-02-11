@@ -192,10 +192,16 @@
     <view class="card">
       <text class="card-title">照片上传 <text class="sub">(最多6张)</text></text>
       <text class="tip">清晰的照片可以大大提升匹配机会～</text>
+      <!-- 上传中提示 -->
+      <text class="tip" wx:if="{{uploadingPhoto}}" style="color: #E8457C;">📤 照片上传中...</text>
       <view class="photo-grid">
         <view class="photo-item" wx:for="{{photos}}" wx:key="*this">
           <image class="photo-img" src="{{item}}" mode="aspectFill" data-url="{{item}}" bindtap="previewPhoto" />
           <view class="photo-del" data-i="{{index}}" catchtap="removePhoto">✕</view>
+          <!-- 上传状态指示 -->
+          <view class="photo-status" wx:if="{{!uploadedPhotos[index]}}">
+            <text class="photo-status-text">上传中</text>
+          </view>
         </view>
         <view class="photo-add" bindtap="choosePhoto" wx:if="{{photos.length < 6}}">
           <text class="add-icon">+</text>
@@ -267,6 +273,11 @@
   <view class="bottom-bar">
     <button class="btn-back" wx:if="{{currentStep > 0}}" bindtap="prevStep">上一步</button>
     <button class="btn-next" wx:if="{{currentStep < 3}}" bindtap="nextStep">下一步</button>
-    <button class="btn-submit" wx:if="{{currentStep === 3}}" bindtap="onSubmit">确认并提交</button>
+    <button
+      class="btn-submit"
+      wx:if="{{currentStep === 3}}"
+      bindtap="onSubmit"
+      disabled="{{submitting || uploadingPhoto}}"
+    >{{submitting ? '提交中...' : (uploadingPhoto ? '照片上传中...' : '确认并提交')}}</button>
   </view>
 </view>

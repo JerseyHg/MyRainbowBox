@@ -1,4 +1,4 @@
-/// <reference path="./types/index.d.ts" />
+/// <reference path="./typings/index.d.ts" />
 
 interface IAppOption {
   globalData: {
@@ -6,4 +6,8 @@ interface IAppOption {
     hasProfile: boolean;
     baseUrl: string;
   };
+  /** 保存登录态 */
+  saveLogin(openid: string, hasProfile: boolean): void;
+  /** 清除登录态 */
+  clearLogin(): void;
 }

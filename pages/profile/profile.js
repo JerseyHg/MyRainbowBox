@@ -1,5 +1,4 @@
-import { submitProfile, uploadPhoto, getMyProfile } from '../../services/api'
-import type { ProfileData } from '../../services/api'
+var api = require('../../services/api')
 
 Page({
   data: {
@@ -21,7 +20,7 @@ Page({
     comingOutStatus: '', comingOutOptions: ['完全出柜', '半出柜', '未出柜', '不想说'],
     healthCondition: '',
     hobbyTags: ['健身','运动','旅行','摄影','音乐','电影','阅读','游戏','美食','烹饪','画画','舞蹈','徒步','骑行','游泳','瑜伽','露营','钓鱼','桌游','剧本杀','宠物','园艺'],
-    selectedHobbies: [] as string[],
+    selectedHobbies: [],
     customHobby: '',
     lifestyle: '',
 
@@ -29,8 +28,8 @@ Page({
     expRelationship: '', expBodyType: '', expAppearance: '', expAgeRange: '',
     expHabits: '', expPersonality: '', expLocation: '', expOther: '',
     specialRequirements: '',
-    photos: [] as string[],           // 展示用 (本地临时路径)
-    uploadedPhotos: [] as string[],   // 已上传的服务器URL
+    photos: [],
+    uploadedPhotos: [],
     uploadingPhoto: false,
   },
 
@@ -38,31 +37,31 @@ Page({
   //  通用事件
   // =========================================
 
-  onInput(e: any) {
+  onInput: function (e) {
     var key = e.currentTarget.dataset.key
-    var obj: any = {}
+    var obj = {}
     obj[key] = e.detail.value
     this.setData(obj)
   },
 
-  onTagTap(e: any) {
+  onTagTap: function (e) {
     var key = e.currentTarget.dataset.key
     var val = e.currentTarget.dataset.val
-    var obj: any = {}
+    var obj = {}
     obj[key] = val
     this.setData(obj)
   },
 
-  onPick(e: any) {
+  onPick: function (e) {
     var key = e.currentTarget.dataset.key
-    var map: any = {
+    var map = {
       maritalStatus: 'maritalOptions',
       constellation: 'constellationOptions',
       mbti: 'mbtiOptions',
       comingOutStatus: 'comingOutOptions'
     }
-    var opts = (this.data as any)[map[key]] || []
-    var obj: any = {}
+    var opts = this.data[map[key]] || []
+    var obj = {}
     obj[key] = opts[e.detail.value]
     this.setData(obj)
   },
@@ -71,7 +70,7 @@ Page({
   //  兴趣爱好
   // =========================================
 
-  toggleHobby(e: any) {
+  toggleHobby: function (e) {
     var hobby = e.currentTarget.dataset.val
     var list = this.data.selectedHobbies.slice()
     var idx = list.indexOf(hobby)
@@ -86,7 +85,7 @@ Page({
     this.setData({ selectedHobbies: list })
   },
 
-  addCustomHobby() {
+  addCustomHobby: function () {
     var val = this.data.customHobby.trim()
     if (!val) return
     if (this.data.selectedHobbies.length >= 10) {
@@ -100,7 +99,7 @@ Page({
     this.setData({ selectedHobbies: list, customHobby: '' })
   },
 
-  removeHobby(e: any) {
+  removeHobby: function (e) {
     var idx = e.currentTarget.dataset.i
     var list = this.data.selectedHobbies.slice()
     list.splice(idx, 1)
@@ -111,7 +110,7 @@ Page({
   //  照片：选择 + 即时上传
   // =========================================
 
-  choosePhoto() {
+  choosePhoto: function () {
     var that = this
     var remaining = 6 - that.data.photos.length
     if (remaining <= 0) {
@@ -124,52 +123,54 @@ Page({
       mediaType: ['image'],
       sourceType: ['album', 'camera'],
       sizeType: ['compressed'],
-      success(res) {
-        var newFiles = res.tempFiles
-        // 先把本地路径加到展示列表
+      success: function (res) {
         var photos = that.data.photos.slice()
         var uploaded = that.data.uploadedPhotos.slice()
+        var startIdx = photos.length
 
-        for (var i = 0; i < newFiles.length; i++) {
-          var localPath = newFiles[i].tempFilePath
-          photos.push(localPath)
-          uploaded.push('')  // 占位，等上传完成后替换
+        for (var i = 0; i < res.tempFiles.length; i++) {
+          photos.push(res.tempFiles[i].tempFilePath)
+          uploaded.push('')  // 占位
         }
         that.setData({ photos: photos, uploadedPhotos: uploaded })
 
-        // 逐张上传到服务器
-        that._uploadNewPhotos(photos.length - newFiles.length, newFiles.length)
+        // 逐张上传
+        that._uploadNewPhotos(startIdx, res.tempFiles.length)
       }
     })
   },
 
-  /** 从 startIdx 开始上传 count 张照片 */
-  async _uploadNewPhotos(startIdx: number, count: number) {
-    this.setData({ uploadingPhoto: true })
+  _uploadNewPhotos: function (startIdx, count) {
+    var that = this
+    that.setData({ uploadingPhoto: true })
 
-    for (var i = 0; i < count; i++) {
+    var doUpload = function (i) {
+      if (i >= count) {
+        that.setData({ uploadingPhoto: false })
+        return
+      }
+
       var idx = startIdx + i
-      var localPath = this.data.photos[idx]
+      var localPath = that.data.photos[idx]
 
-      try {
-        var serverUrl = await uploadPhoto(localPath)
-        // 更新对应位置的服务器URL
+      api.uploadPhoto(localPath).then(function (serverUrl) {
         var key = 'uploadedPhotos[' + idx + ']'
-        var obj: any = {}
+        var obj = {}
         obj[key] = serverUrl
-        this.setData(obj)
+        that.setData(obj)
         console.log('[Photo] 上传成功:', idx, serverUrl)
-      } catch (err: any) {
+        doUpload(i + 1)
+      }).catch(function (err) {
         console.error('[Photo] 上传失败:', idx, err)
         wx.showToast({ title: '第' + (idx + 1) + '张照片上传失败', icon: 'none' })
-        // 上传失败的保留空字符串，提交时会过滤掉
-      }
+        doUpload(i + 1)
+      })
     }
 
-    this.setData({ uploadingPhoto: false })
+    doUpload(0)
   },
 
-  removePhoto(e: any) {
+  removePhoto: function (e) {
     var idx = e.currentTarget.dataset.i
     var photos = this.data.photos.slice()
     var uploaded = this.data.uploadedPhotos.slice()
@@ -178,7 +179,7 @@ Page({
     this.setData({ photos: photos, uploadedPhotos: uploaded })
   },
 
-  previewPhoto(e: any) {
+  previewPhoto: function (e) {
     wx.previewImage({ current: e.currentTarget.dataset.url, urls: this.data.photos })
   },
 
@@ -186,7 +187,7 @@ Page({
   //  步骤导航
   // =========================================
 
-  goStep(e: any) {
+  goStep: function (e) {
     var s = parseInt(e.currentTarget.dataset.s)
     if (s <= this.data.currentStep) {
       this.setData({ currentStep: s })
@@ -194,20 +195,20 @@ Page({
     }
   },
 
-  nextStep() {
+  nextStep: function () {
     if (!this.validateStep()) return
     this.setData({ currentStep: this.data.currentStep + 1 })
     wx.pageScrollTo({ scrollTop: 0, duration: 200 })
   },
 
-  prevStep() {
+  prevStep: function () {
     if (this.data.currentStep > 0) {
       this.setData({ currentStep: this.data.currentStep - 1 })
       wx.pageScrollTo({ scrollTop: 0, duration: 200 })
     }
   },
 
-  validateStep(): boolean {
+  validateStep: function () {
     var d = this.data
     if (d.currentStep === 0) {
       if (!d.name.trim()) { wx.showToast({ title: '请输入姓名', icon: 'none' }); return false }
@@ -220,12 +221,13 @@ Page({
   },
 
   // =========================================
-  //  提交资料（对接后端）
+  //  提交资料
   // =========================================
 
-  onSubmit() {
-    // 检查是否还有照片在上传中
-    if (this.data.uploadingPhoto) {
+  onSubmit: function () {
+    var that = this
+
+    if (that.data.uploadingPhoto) {
       wx.showToast({ title: '照片还在上传中，请稍候', icon: 'none' })
       return
     }
@@ -233,95 +235,85 @@ Page({
     wx.showModal({
       title: '确认提交',
       content: '提交后将进入审核流程，确定提交吗？',
-      success: (res) => {
+      success: function (res) {
         if (res.confirm) {
-          this._doSubmit()
+          that._doSubmit()
         }
       }
     })
   },
 
-  async _doSubmit() {
-    if (this.data.submitting) return
-    this.setData({ submitting: true })
+  _doSubmit: function () {
+    var that = this
+    if (that.data.submitting) return
+    that.setData({ submitting: true })
     wx.showLoading({ title: '提交中...', mask: true })
 
-    try {
-      // 组装提交数据
-      var d = this.data
+    var d = that.data
 
-      // 过滤掉上传失败的照片（空字符串）
-      var validPhotos = d.uploadedPhotos.filter(function(url) { return !!url })
+    // 过滤掉上传失败的照片
+    var validPhotos = d.uploadedPhotos.filter(function (url) { return !!url })
 
-      var profileData: ProfileData = {
-        name: d.name.trim(),
-        gender: d.gender,
-        age: parseInt(d.age) || 0,
-        height: parseInt(d.height) || 0,
-        weight: parseInt(d.weight) || 0,
-        marital_status: d.maritalStatus || undefined,
-        body_type: d.bodyType || undefined,
-        hometown: d.hometown || undefined,
-        work_location: d.workLocation || undefined,
-        industry: d.industry || undefined,
-        constellation: d.constellation || undefined,
-        mbti: d.mbti || undefined,
-        health_condition: d.healthCondition || undefined,
-        coming_out_status: d.comingOutStatus || undefined,
-        hobbies: d.selectedHobbies,
-        lifestyle: d.lifestyle || undefined,
-        expectation: {
-          relationship: d.expRelationship || undefined,
-          body_type: d.expBodyType || undefined,
-          appearance: d.expAppearance || undefined,
-          age_range: d.expAgeRange || undefined,
-          habits: d.expHabits || undefined,
-          personality: d.expPersonality || undefined,
-          location: d.expLocation || undefined,
-          other: d.expOther || undefined,
-        },
-        special_requirements: d.specialRequirements || undefined,
-        photos: validPhotos,
-      }
+    var profileData = {
+      name: d.name.trim(),
+      gender: d.gender,
+      age: parseInt(d.age) || 0,
+      height: parseInt(d.height) || 0,
+      weight: parseInt(d.weight) || 0,
+      marital_status: d.maritalStatus || undefined,
+      body_type: d.bodyType || undefined,
+      hometown: d.hometown || undefined,
+      work_location: d.workLocation || undefined,
+      industry: d.industry || undefined,
+      constellation: d.constellation || undefined,
+      mbti: d.mbti || undefined,
+      health_condition: d.healthCondition || undefined,
+      coming_out_status: d.comingOutStatus || undefined,
+      hobbies: d.selectedHobbies,
+      lifestyle: d.lifestyle || undefined,
+      expectation: {
+        relationship: d.expRelationship || undefined,
+        body_type: d.expBodyType || undefined,
+        appearance: d.expAppearance || undefined,
+        age_range: d.expAgeRange || undefined,
+        habits: d.expHabits || undefined,
+        personality: d.expPersonality || undefined,
+        location: d.expLocation || undefined,
+        other: d.expOther || undefined,
+      },
+      special_requirements: d.specialRequirements || undefined,
+      photos: validPhotos,
+    }
 
-      console.log('[Profile] 提交数据:', JSON.stringify(profileData))
+    console.log('[Profile] 提交数据:', JSON.stringify(profileData))
 
-      var result = await submitProfile(profileData)
-
+    api.submitProfile(profileData).then(function (result) {
       wx.hideLoading()
 
       if (result.success) {
-        // 更新本地状态
-        var app = getApp<IAppOption>()
+        var app = getApp()
         app.globalData.hasProfile = true
         wx.setStorageSync('hasProfile', true)
 
         wx.showToast({ title: '提交成功！', icon: 'success', duration: 2000 })
 
-        var serialNumber = result.data?.serial_number || ''
-        var profileId = result.data?.profile_id || ''
+        var serialNumber = (result.data && result.data.serial_number) || ''
 
-        setTimeout(function() {
-          // 提交成功后的提示
+        setTimeout(function () {
           wx.showModal({
             title: '提交成功',
             content: '您的编号为 ' + serialNumber + '，资料已进入审核流程，请耐心等待。',
             showCancel: false,
             confirmText: '我知道了',
-            success: function() {
-              // TODO: 后续可跳转到"审核状态"页面
-              // wx.redirectTo({ url: '/pages/status/status' })
-            }
           })
         }, 500)
       } else {
         wx.showToast({ title: result.message || '提交失败', icon: 'none' })
       }
-    } catch (err: any) {
+    }).catch(function (err) {
       wx.hideLoading()
       console.error('[Profile] 提交失败:', err)
 
-      // 针对常见错误给出友好提示
       var errMsg = err.message || '提交失败，请重试'
       if (errMsg.indexOf('已经提交过') >= 0) {
         wx.showModal({
@@ -332,39 +324,35 @@ Page({
       } else {
         wx.showToast({ title: errMsg, icon: 'none', duration: 3000 })
       }
-    } finally {
-      this.setData({ submitting: false })
-    }
+    }).finally(function () {
+      that.setData({ submitting: false })
+    })
   },
 
   // =========================================
   //  生命周期
   // =========================================
 
-  onLoad(options: any) {
-    // 检查登录态
+  onLoad: function (options) {
     var openid = wx.getStorageSync('openid')
     if (!openid) {
       wx.redirectTo({ url: '/pages/index/index' })
       return
     }
 
-    // 如果带了 mode=view 参数，可以加载已有资料
     if (options && options.mode === 'view') {
       this._loadExistingProfile()
     }
   },
 
-  /** 加载已有资料（编辑/查看场景） */
-  async _loadExistingProfile() {
-    try {
-      wx.showLoading({ title: '加载中...' })
-      var result = await getMyProfile()
+  _loadExistingProfile: function () {
+    wx.showLoading({ title: '加载中...' })
+
+    api.getMyProfile().then(function (result) {
       wx.hideLoading()
 
       if (result.success && result.data) {
         var profile = result.data
-        // 如果资料状态不允许编辑，给出提示
         if (profile.status === 'approved' || profile.status === 'published') {
           wx.showModal({
             title: '提示',
@@ -378,16 +366,14 @@ Page({
             showCancel: false,
           })
         }
-        // TODO: 如果需要编辑功能，在这里回填表单数据
       }
-    } catch (err: any) {
+    }).catch(function (err) {
       wx.hideLoading()
-      // 404 = 没有资料，正常情况
       if (err.message && err.message.indexOf('不存在') >= 0) {
         console.log('[Profile] 用户尚未提交资料')
       } else {
         console.error('[Profile] 加载资料失败:', err)
       }
-    }
+    })
   },
 })
