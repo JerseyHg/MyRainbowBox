@@ -47,7 +47,7 @@ function request<T = any>(options: {
       data: options.data,
       header: {
         'Content-Type': 'application/json',
-        'Authorization': openid,
+        'Authorization': `Bearer ${openid}`,
         ...options.header,
       },
       success(res: any) {
@@ -198,7 +198,7 @@ export function uploadPhoto(filePath: string): Promise<string> {
       url: `${getBaseUrl()}/upload/photo`,
       filePath,
       name: 'file',
-      header: { Authorization: openid },
+      header: { Authorization: `Bearer ${openid}` },
       success(res) {
         if (res.statusCode === 200) {
           try {

@@ -36,7 +36,7 @@ function request(options) {
       data: options.data,
       header: Object.assign({
         'Content-Type': 'application/json',
-        'Authorization': openid,
+        'Authorization': 'Bearer ' + openid,
       }, options.header || {}),
       success: function (res) {
         if (res.statusCode >= 200 && res.statusCode < 300) {
@@ -179,7 +179,7 @@ function uploadPhoto(filePath) {
       filePath: filePath,
       name: 'file',
       header: {
-        Authorization: openid,
+        Authorization: 'Bearer ' + openid,
       },
       success: function (res) {
         if (res.statusCode === 200) {

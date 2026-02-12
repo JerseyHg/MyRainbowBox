@@ -11,7 +11,7 @@ App({
 
     // ⬇️ Mock 模式：设为 true 则无需后端，使用本地模拟数据
     // ⬇️ 上线前务必改为 false
-    mockMode: true,
+    mockMode: false,
   },
 
   onLaunch() {
