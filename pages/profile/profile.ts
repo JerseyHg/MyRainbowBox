@@ -309,8 +309,7 @@ Page({
             showCancel: false,
             confirmText: '我知道了',
             success: function() {
-              // TODO: 后续可跳转到"审核状态"页面
-              // wx.redirectTo({ url: '/pages/status/status' })
+              wx.redirectTo({ url: '/pages/status/status' })
             }
           })
         }, 500)

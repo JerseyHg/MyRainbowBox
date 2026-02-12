@@ -1,10 +1,13 @@
 {
   "pages": [
     "pages/index/index",
-    "pages/profile/profile"
+    "pages/profile/profile",
+    "pages/status/status",
+    "pages/codes/codes"
   ],
   "window": {
     "navigationBarTitleText": "彩虹注册",
-    "navigationBarBackgroundColor": "#ffffff"
+    "navigationBarBackgroundColor": "#ffffff",
+    "enablePullDownRefresh": false
   }
 }

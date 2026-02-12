@@ -5,6 +5,7 @@ interface IAppOption {
     openid: string;
     hasProfile: boolean;
     baseUrl: string;
+    mockMode?: boolean;
   };
   /** 保存登录态 */
   saveLogin(openid: string, hasProfile: boolean): void;

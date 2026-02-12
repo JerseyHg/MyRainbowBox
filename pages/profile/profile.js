@@ -305,6 +305,9 @@ Page({
             content: '您的编号为 ' + serialNumber + '，资料已进入审核流程，请耐心等待。',
             showCancel: false,
             confirmText: '我知道了',
+            success: function () {
+              wx.redirectTo({ url: '/pages/status/status' })
+            }
           })
         }, 500)
       } else {

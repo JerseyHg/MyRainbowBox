@@ -4,7 +4,68 @@ Page({
   data: {
     code: '',
     loading: false,
+    autoLogging: true,
     devMode: true,
+  },
+
+  onLoad: function (options) {
+    if (options && options.code) {
+      this.setData({ code: options.code.toUpperCase().slice(0, 6) })
+    }
+
+    var openid = wx.getStorageSync('openid')
+    if (openid) {
+      var hasProfile = wx.getStorageSync('hasProfile')
+      if (hasProfile) {
+        wx.redirectTo({ url: '/pages/status/status' })
+      } else {
+        wx.redirectTo({ url: '/pages/profile/profile' })
+      }
+      return
+    }
+
+    // 退出登录过来的，不自动跳，让用户选择
+    if (options && options.from === 'logout') {
+      this.setData({ autoLogging: false })
+      return
+    }
+
+    this._tryAutoLogin()
+  },
+
+  _tryAutoLogin: function () {
+    var that = this
+    that.setData({ autoLogging: true })
+
+    wx.login({
+      success: function (loginRes) {
+        if (!loginRes.code) {
+          that.setData({ autoLogging: false })
+          return
+        }
+
+        api.autoLogin(loginRes.code).then(function (result) {
+          if (result.success && result.openid) {
+            var app = getApp()
+            app.saveLogin(result.openid, result.has_profile)
+
+            if (result.has_profile) {
+              wx.redirectTo({ url: '/pages/status/status' })
+            } else {
+              wx.redirectTo({ url: '/pages/profile/profile' })
+            }
+          } else {
+            that.setData({ autoLogging: false })
+          }
+        }).catch(function () {
+          console.log('[Index] 非老用户，需要邀请码')
+          that.setData({ autoLogging: false })
+        })
+      },
+      fail: function () {
+        that.setData({ autoLogging: false })
+      }
+    })
   },
 
   onInput: function (e) {
@@ -22,7 +83,6 @@ Page({
     that.setData({ loading: true })
     wx.showLoading({ title: '验证中...' })
 
-    // 1. 获取微信登录 code
     wx.login({
       success: function (loginRes) {
         if (!loginRes.code) {
@@ -32,12 +92,10 @@ Page({
           return
         }
 
-        // 2. 调用后端验证接口
         api.verifyInvitation(that.data.code, loginRes.code).then(function (result) {
           wx.hideLoading()
 
           if (result.success && result.openid) {
-            // 3. 保存登录态
             var app = getApp()
             app.saveLogin(result.openid, result.has_profile)
 
@@ -45,7 +103,7 @@ Page({
 
             setTimeout(function () {
               if (result.has_profile) {
-                wx.redirectTo({ url: '/pages/profile/profile?mode=view' })
+                wx.redirectTo({ url: '/pages/status/status' })
               } else {
                 wx.redirectTo({ url: '/pages/profile/profile' })
               }
@@ -69,6 +127,15 @@ Page({
     })
   },
 
+  /** 已注册用户直接登录 */
+  onRelogin: function () {
+    var that = this
+    that.setData({ loading: true, autoLogging: true })
+    wx.showLoading({ title: '登录中...' })
+
+    this._tryAutoLogin()
+  },
+
   onDevSkip: function () {
     var app = getApp()
     app.saveLogin('dev_openid_123', false)
@@ -76,12 +143,5 @@ Page({
     setTimeout(function () {
       wx.redirectTo({ url: '/pages/profile/profile' })
     }, 500)
-  },
-
-  onLoad: function () {
-    var openid = wx.getStorageSync('openid')
-    if (openid) {
-      wx.redirectTo({ url: '/pages/profile/profile' })
-    }
   },
 })

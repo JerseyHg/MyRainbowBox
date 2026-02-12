@@ -1,20 +1,30 @@
 /**
  * API 服务层
  * 封装所有后端接口调用
+ * 
+ * 🔧 Mock 模式：当 app.globalData.mockMode = true 时，
+ *    所有接口自动使用本地模拟数据，无需后端服务。
  */
 
-/** 获取 BASE_URL */
+var mock = require('./mock')
+
+// ===== 辅助函数 =====
+
 function getBaseUrl() {
   var app = getApp()
   return app.globalData.baseUrl
 }
 
-/** 获取当前 openid */
 function getOpenid() {
   return wx.getStorageSync('openid') || ''
 }
 
-// ========== 通用请求封装 ==========
+function isMockMode() {
+  var app = getApp()
+  return !!(app.globalData && app.globalData.mockMode)
+}
+
+// ===== 通用请求封装 =====
 
 function request(options) {
   return new Promise(function (resolve, reject) {
@@ -48,10 +58,40 @@ function request(options) {
   })
 }
 
-// ========== 邀请码相关 ==========
+// ===== 自动登录（老用户） =====
 
-/** 验证邀请码 */
+function autoLogin(wxCode) {
+  if (isMockMode()) {
+    return mock.autoLogin(wxCode)
+  }
+
+  return new Promise(function (resolve, reject) {
+    wx.request({
+      url: getBaseUrl() + '/invitation/auto-login',
+      method: 'POST',
+      data: { wx_code: wxCode },
+      header: { 'Content-Type': 'application/json' },
+      success: function (res) {
+        if (res.statusCode === 200) {
+          resolve(res.data)
+        } else {
+          reject(new Error('非注册用户'))
+        }
+      },
+      fail: function (err) {
+        reject(new Error(err.errMsg || '网络错误'))
+      },
+    })
+  })
+}
+
+// ===== 邀请码相关 =====
+
 function verifyInvitation(invitationCode, wxCode) {
+  if (isMockMode()) {
+    return mock.verifyInvitation(invitationCode, wxCode)
+  }
+
   return new Promise(function (resolve, reject) {
     wx.request({
       url: getBaseUrl() + '/invitation/verify',
@@ -76,15 +116,19 @@ function verifyInvitation(invitationCode, wxCode) {
   })
 }
 
-/** 获取我的邀请码 */
 function getMyCodes() {
+  if (isMockMode()) {
+    return mock.getMyCodes()
+  }
   return request({ url: '/invitation/my-codes' })
 }
 
-// ========== 用户资料相关 ==========
+// ===== 用户资料相关 =====
 
-/** 提交资料 */
 function submitProfile(data) {
+  if (isMockMode()) {
+    return mock.submitProfile(data)
+  }
   return request({
     url: '/profile/submit',
     method: 'POST',
@@ -92,13 +136,17 @@ function submitProfile(data) {
   })
 }
 
-/** 获取我的资料 */
 function getMyProfile() {
+  if (isMockMode()) {
+    return mock.getMyProfile()
+  }
   return request({ url: '/profile/my' })
 }
 
-/** 更新资料 */
 function updateProfile(data) {
+  if (isMockMode()) {
+    return mock.updateProfile(data)
+  }
   return request({
     url: '/profile/update',
     method: 'PUT',
@@ -106,18 +154,23 @@ function updateProfile(data) {
   })
 }
 
-/** 下架资料 */
 function archiveProfile() {
+  if (isMockMode()) {
+    return mock.archiveProfile()
+  }
   return request({
     url: '/profile/archive',
     method: 'POST',
   })
 }
 
-// ========== 文件上传 ==========
+// ===== 文件上传 =====
 
-/** 上传单张照片，返回服务器URL */
 function uploadPhoto(filePath) {
+  if (isMockMode()) {
+    return mock.uploadPhoto(filePath)
+  }
+
   return new Promise(function (resolve, reject) {
     var openid = getOpenid()
 
@@ -151,9 +204,10 @@ function uploadPhoto(filePath) {
   })
 }
 
-// ========== 导出 ==========
+// ===== 导出 =====
 
 module.exports = {
+  autoLogin: autoLogin,
   verifyInvitation: verifyInvitation,
   getMyCodes: getMyCodes,
   submitProfile: submitProfile,
