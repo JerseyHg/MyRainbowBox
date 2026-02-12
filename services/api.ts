@@ -144,6 +144,10 @@ export interface ProfileData {
   mbti?: string
   health_condition?: string
   housing_status?: string
+  dating_purpose?: string
+  want_children?: string
+  wechat_id?: string
+  referred_by?: string
   hobbies: string[]
   lifestyle?: string
   coming_out_status?: string

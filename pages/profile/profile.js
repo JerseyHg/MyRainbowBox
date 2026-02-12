@@ -11,6 +11,11 @@ Page({
     maritalStatus: '', maritalOptions: ['未婚', '离异', '丧偶', '保密'],
     bodyType: '', bodyTypeOptions: ['偏瘦', '匀称', '偏壮', '微胖', '较胖'],
     hometown: '', workLocation: '', industry: '',
+    datingPurpose: '',
+    datingPurposeOptions: ['找恋人', '找朋友', '都可以', '其他'],
+    wantChildren: '',
+    wantChildrenOptions: ['想要', '不想要', '顺其自然', '不确定'],
+    wechatId: '',
 
     // 步骤1: 个人特征
     constellation: '',
@@ -58,7 +63,9 @@ Page({
       maritalStatus: 'maritalOptions',
       constellation: 'constellationOptions',
       mbti: 'mbtiOptions',
-      comingOutStatus: 'comingOutOptions'
+      comingOutStatus: 'comingOutOptions',
+      datingPurpose: 'datingPurposeOptions',
+      wantChildren: 'wantChildrenOptions'
     }
     var opts = this.data[map[key]] || []
     var obj = {}
@@ -268,6 +275,9 @@ Page({
       constellation: d.constellation || undefined,
       mbti: d.mbti || undefined,
       health_condition: d.healthCondition || undefined,
+      dating_purpose: d.datingPurpose || undefined,
+      want_children: d.wantChildren || undefined,
+      wechat_id: d.wechatId || undefined,
       coming_out_status: d.comingOutStatus || undefined,
       hobbies: d.selectedHobbies,
       lifestyle: d.lifestyle || undefined,

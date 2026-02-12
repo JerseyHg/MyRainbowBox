@@ -84,6 +84,34 @@
         <input class="input" type="text" placeholder="例：互联网" value="{{industry}}" bindinput="onInput" data-key="industry" />
       </view>
     </view>
+
+    <view class="card">
+      <text class="card-title">交友信息</text>
+
+      <view class="field">
+        <text class="label">交友目的</text>
+        <view class="tags">
+          <text wx:for="{{datingPurposeOptions}}" wx:key="*this"
+            class="tag {{datingPurpose === item ? 'active' : ''}}"
+            data-key="datingPurpose" data-val="{{item}}" bindtap="onTagTap">{{item}}</text>
+        </view>
+      </view>
+
+      <view class="field">
+        <text class="label">是否需要孩子</text>
+        <view class="tags">
+          <text wx:for="{{wantChildrenOptions}}" wx:key="*this"
+            class="tag {{wantChildren === item ? 'active' : ''}}"
+            data-key="wantChildren" data-val="{{item}}" bindtap="onTagTap">{{item}}</text>
+        </view>
+      </view>
+
+      <view class="field">
+        <text class="label">微信号</text>
+        <input class="input" type="text" placeholder="请输入你的微信号"
+          value="{{wechatId}}" bindinput="onInput" data-key="wechatId" />
+      </view>
+    </view>
   </view>
 
   <!-- ===== 步骤1: 个人特征 ===== -->
@@ -234,6 +262,9 @@
       <view class="pv-row" wx:if="{{hometown}}"><text class="pv-l">籍贯</text><text class="pv-r">{{hometown}}</text></view>
       <view class="pv-row" wx:if="{{workLocation}}"><text class="pv-l">工作地</text><text class="pv-r">{{workLocation}}</text></view>
       <view class="pv-row" wx:if="{{industry}}"><text class="pv-l">行业</text><text class="pv-r">{{industry}}</text></view>
+      <view class="pv-row" wx:if="{{datingPurpose}}"><text class="pv-l">交友目的</text><text class="pv-r">{{datingPurpose}}</text></view>
+      <view class="pv-row" wx:if="{{wantChildren}}"><text class="pv-l">孩子意愿</text><text class="pv-r">{{wantChildren}}</text></view>
+      <view class="pv-row" wx:if="{{wechatId}}"><text class="pv-l">微信号</text><text class="pv-r">{{wechatId}}</text></view>
 
       <text class="section-label" wx:if="{{constellation || mbti || comingOutStatus}}">个人特征</text>
       <view class="pv-row" wx:if="{{constellation}}"><text class="pv-l">星座</text><text class="pv-r">{{constellation}}</text></view>
