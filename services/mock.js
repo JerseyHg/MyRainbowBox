@@ -28,14 +28,10 @@ var mockDB = {
 /** 自动登录（检测老用户） */
 function autoLogin(wxCode) {
   return delay(300).then(function () {
-    // mock 模式下检查本地是否有存过的 mock profile
-    // 通过查看 mockDB 里有没有数据来判断
-    // 因为 mock 数据存在内存里，小程序重启后会丢失
-    // 所以这里模拟的逻辑是：如果 localStorage 里有 mock_registered 标记，就认为是老用户
     var registered = wx.getStorageSync('mock_registered')
     if (registered) {
       var openid = registered.openid || ('mock_openid_' + Date.now())
-      
+
       // 恢复 mockDB 里的数据
       if (!mockDB.profiles[openid]) {
         mockDB.profiles[openid] = {
@@ -103,7 +99,6 @@ function getMyCodes() {
     var codes = mockDB.userCodes[openid] || []
 
     if (codes.length === 0) {
-      // 如果用户已有资料且已通过审核，生成模拟邀请码
       var profile = mockDB.profiles[openid]
       if (profile && (profile.status === 'approved' || profile.status === 'published')) {
         codes = [
@@ -245,10 +240,33 @@ function archiveProfile() {
   })
 }
 
+/** 删除资料（仅 pending/rejected 状态） */
+function deleteProfile() {
+  return delay(400).then(function () {
+    var openid = wx.getStorageSync('openid') || ''
+    var profile = mockDB.profiles[openid]
+
+    if (!profile) {
+      throw new Error('资料不存在')
+    }
+
+    if (['pending', 'rejected'].indexOf(profile.status) < 0) {
+      throw new Error('当前状态不允许删除')
+    }
+
+    delete mockDB.profiles[openid]
+    delete mockDB.userCodes[openid]
+    wx.removeStorageSync('mock_registered')
+
+    console.log('[Mock] 🗑️ 资料已删除')
+
+    return { success: true, message: '资料已删除' }
+  })
+}
+
 /** 上传照片（mock：直接返回本地路径作为URL） */
 function uploadPhoto(filePath) {
   return delay(600).then(function () {
-    // mock 模式下直接返回本地路径，真机上不能用，但可以跑通流程
     var mockUrl = '/uploads/photos/mock_' + Date.now() + '.jpg'
 
     console.log('[Mock] 照片上传成功(模拟):', mockUrl)
@@ -277,7 +295,6 @@ function mockApprove() {
       { code: 'INV' + Math.random().toString(36).substring(2, 5).toUpperCase(), is_used: false, created_at: _now() },
       { code: 'INV' + Math.random().toString(36).substring(2, 5).toUpperCase(), is_used: false, created_at: _now() },
     ]
-    // 同步 localStorage
     var reg = wx.getStorageSync('mock_registered') || {}
     reg.status = 'approved'
     reg.invitation_quota = 2
@@ -342,6 +359,7 @@ module.exports = {
   getMyProfile: getMyProfile,
   updateProfile: updateProfile,
   archiveProfile: archiveProfile,
+  deleteProfile: deleteProfile,
   uploadPhoto: uploadPhoto,
 
   // 测试辅助

@@ -109,6 +109,22 @@ export async function archiveProfile() {
   return { success: true, message: '已下架' }
 }
 
+/** 删除资料（仅 pending/rejected 状态） */
+export async function deleteProfile() {
+  await delay(400)
+  const openid = wx.getStorageSync('openid') || ''
+  const profile = mockDB.profiles[openid]
+  if (!profile) throw new Error('资料不存在')
+  if (!['pending', 'rejected'].includes(profile.status)) {
+    throw new Error('当前状态不允许删除')
+  }
+  delete mockDB.profiles[openid]
+  delete mockDB.userCodes[openid]
+  wx.removeStorageSync('mock_registered')
+  console.log('[Mock] 🗑️ 资料已删除')
+  return { success: true, message: '资料已删除' }
+}
+
 export async function uploadPhoto(_filePath: string): Promise<string> {
   await delay(600)
   const mockUrl = '/uploads/photos/mock_' + Date.now() + '.jpg'

@@ -186,6 +186,12 @@ export function archiveProfile(): Promise<ApiResponse> {
   return request({ url: '/profile/archive', method: 'POST' })
 }
 
+/** 删除资料（仅 pending/rejected 状态） */
+export function deleteProfile(): Promise<ApiResponse> {
+  if (isMockMode()) return mock.deleteProfile()
+  return request({ url: '/profile/delete', method: 'DELETE' })
+}
+
 // ===== 文件上传 =====
 
 export function uploadPhoto(filePath: string): Promise<string> {
@@ -225,5 +231,5 @@ export function uploadPhoto(filePath: string): Promise<string> {
 export default {
   autoLogin, verifyInvitation, getMyCodes,
   submitProfile, getMyProfile, updateProfile, archiveProfile,
-  uploadPhoto,
+  deleteProfile, uploadPhoto,
 }

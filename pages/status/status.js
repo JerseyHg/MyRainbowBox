@@ -96,6 +96,38 @@ Page({
     wx.navigateTo({ url: '/pages/codes/codes' })
   },
 
+  /** 删除资料 */
+  onDeleteProfile: function () {
+    var that = this
+    wx.showModal({
+      title: '确认删除',
+      content: '删除后您的所有报名信息将被永久移除，且无法恢复。确定要删除吗？',
+      confirmText: '确认删除',
+      confirmColor: '#D32F2F',
+      success: function (res) {
+        if (res.confirm) {
+          wx.showLoading({ title: '删除中...', mask: true })
+
+          api.deleteProfile().then(function () {
+            wx.hideLoading()
+
+            // 清除登录态
+            var app = getApp()
+            app.clearLogin()
+
+            wx.showToast({ title: '已删除', icon: 'success' })
+            setTimeout(function () {
+              wx.reLaunch({ url: '/pages/index/index' })
+            }, 1500)
+          }).catch(function (err) {
+            wx.hideLoading()
+            wx.showToast({ title: err.message || '删除失败', icon: 'none' })
+          })
+        }
+      }
+    })
+  },
+
   onLogout: function () {
     wx.showModal({
       title: '确认退出',

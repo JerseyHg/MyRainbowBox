@@ -1,18 +1,12 @@
 /**
- * API 服务层
+ * API 服务层（JS版本）
  * 封装所有后端接口调用
- * 
- * 🔧 Mock 模式：当 app.globalData.mockMode = true 时，
- *    所有接口自动使用本地模拟数据，无需后端服务。
  */
 
 var mock = require('./mock')
 
-// ===== 辅助函数 =====
-
 function getBaseUrl() {
-  var app = getApp()
-  return app.globalData.baseUrl
+  return getApp().globalData.baseUrl
 }
 
 function getOpenid() {
@@ -20,12 +14,10 @@ function getOpenid() {
 }
 
 function isMockMode() {
-  var app = getApp()
-  return !!(app.globalData && app.globalData.mockMode)
+  return getApp().globalData.mockMode
 }
 
-// ===== 通用请求封装 =====
-
+/** 通用请求封装 */
 function request(options) {
   return new Promise(function (resolve, reject) {
     var openid = getOpenid()
@@ -33,32 +25,27 @@ function request(options) {
     wx.request({
       url: getBaseUrl() + options.url,
       method: options.method || 'GET',
-      data: options.data,
-      header: Object.assign({
+      data: options.data || {},
+      header: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + openid,
-      }, options.header || {}),
+        Authorization: 'Bearer ' + openid,
+      },
       success: function (res) {
-        if (res.statusCode >= 200 && res.statusCode < 300) {
+        if (res.statusCode === 200) {
           resolve(res.data)
-        } else if (res.statusCode === 401) {
-          wx.removeStorageSync('openid')
-          wx.removeStorageSync('hasProfile')
-          wx.reLaunch({ url: '/pages/index/index' })
-          reject(new Error('未授权，请重新登录'))
         } else {
           var errMsg = (res.data && (res.data.detail || res.data.message)) || '请求失败'
           reject(new Error(errMsg))
         }
       },
       fail: function (err) {
-        reject(new Error(err.errMsg || '网络错误，请检查网络'))
+        reject(new Error(err.errMsg || '网络错误'))
       },
     })
   })
 }
 
-// ===== 自动登录（老用户） =====
+// ===== 登录相关 =====
 
 function autoLogin(wxCode) {
   if (isMockMode()) {
@@ -164,6 +151,17 @@ function archiveProfile() {
   })
 }
 
+/** 删除资料（仅 pending/rejected 状态） */
+function deleteProfile() {
+  if (isMockMode()) {
+    return mock.deleteProfile()
+  }
+  return request({
+    url: '/profile/delete',
+    method: 'DELETE',
+  })
+}
+
 // ===== 文件上传 =====
 
 function uploadPhoto(filePath) {
@@ -214,5 +212,6 @@ module.exports = {
   getMyProfile: getMyProfile,
   updateProfile: updateProfile,
   archiveProfile: archiveProfile,
+  deleteProfile: deleteProfile,
   uploadPhoto: uploadPhoto,
 }

@@ -17,11 +17,8 @@ Page({
     var openid = wx.getStorageSync('openid')
     if (openid) {
       var hasProfile = wx.getStorageSync('hasProfile')
-      if (hasProfile) {
-        wx.redirectTo({ url: '/pages/status/status' })
-      } else {
-        wx.redirectTo({ url: '/pages/profile/profile' })
-      }
+      // 已登录用户也要检查隐私协议
+      this._checkPrivacyThenNavigate(hasProfile)
       return
     }
 
@@ -44,11 +41,8 @@ Page({
         const app = getApp<IAppOption>()
         app.saveLogin(result.openid, result.has_profile)
 
-        if (result.has_profile) {
-          wx.redirectTo({ url: '/pages/status/status' })
-        } else {
-          wx.redirectTo({ url: '/pages/profile/profile' })
-        }
+        // 自动登录成功后也要检查隐私协议
+        this._checkPrivacyThenNavigate(result.has_profile)
         return
       }
     } catch (err) {
@@ -85,11 +79,8 @@ Page({
         wx.showToast({ title: '验证成功', icon: 'success' })
 
         setTimeout(() => {
-          if (result.has_profile) {
-            wx.redirectTo({ url: '/pages/status/status' })
-          } else {
-            wx.redirectTo({ url: '/pages/profile/profile' })
-          }
+          // 验证成功后检查隐私协议
+          this._checkPrivacyThenNavigate(result.has_profile)
         }, 1000)
       } else {
         wx.showToast({ title: result.message || '验证失败', icon: 'none' })
@@ -118,16 +109,13 @@ Page({
 
         wx.showToast({ title: '登录成功', icon: 'success' })
         setTimeout(() => {
-          if (result.has_profile) {
-            wx.redirectTo({ url: '/pages/status/status' })
-          } else {
-            wx.redirectTo({ url: '/pages/profile/profile' })
-          }
+          // 重新登录后也要检查隐私协议
+          this._checkPrivacyThenNavigate(result.has_profile)
         }, 1000)
       } else {
         wx.showToast({ title: '未找到登记记录，请先使用邀请码登记', icon: 'none' })
       }
-    } catch (err: any) {
+    } catch (err) {
       wx.hideLoading()
       wx.showToast({ title: '未找到登记记录', icon: 'none' })
     }
@@ -135,24 +123,66 @@ Page({
     this.setData({ loading: false })
   },
 
-  onDevSkip() {
-    const app = getApp<IAppOption>()
-    app.saveLogin('dev_openid_123', false)
-    wx.redirectTo({ url: '/pages/profile/profile' })
+  /**
+   * 隐私协议检查 → 通过后跳转
+   */
+  _checkPrivacyThenNavigate(hasProfile: boolean) {
+    const agreed = wx.getStorageSync('privacyAgreed')
+    if (agreed) {
+      this._navigateByProfile(hasProfile)
+      return
+    }
+
+    wx.showModal({
+      title: '用户隐私保护指引',
+      content: '在使用本小程序前，请您阅读并同意《用户隐私保护指引》。我们将收集您的个人信息用于报名审核服务，详情请查看完整隐私指引。',
+      confirmText: '同意并继续',
+      cancelText: '查看详情',
+      success: (res) => {
+        if (res.confirm) {
+          wx.setStorageSync('privacyAgreed', true)
+          this._navigateByProfile(hasProfile)
+        } else {
+          wx.setStorageSync('_pendingNavigate', hasProfile ? 'status' : 'profile')
+          wx.navigateTo({ url: '/pages/privacy/privacy?from=login' })
+        }
+      }
+    })
   },
 
-  /** 跳转隐私协议 */
-  goPrivacy() {
-    wx.navigateTo({ url: '/pages/privacy/privacy' })
+  /** 根据是否有资料跳转到对应页面 */
+  _navigateByProfile(hasProfile: boolean) {
+    if (hasProfile) {
+      wx.redirectTo({ url: '/pages/status/status' })
+    } else {
+      wx.redirectTo({ url: '/pages/profile/profile' })
+    }
   },
 
   _getWxLoginCode(): Promise<string> {
     return new Promise((resolve, reject) => {
       wx.login({
-        success: (res) => res.code ? resolve(res.code) : reject(new Error('微信登录失败')),
-        fail: (err) => reject(new Error(err.errMsg || '微信登录失败')),
+        success: (res) => {
+          if (res.code) {
+            resolve(res.code)
+          } else {
+            reject(new Error('微信登录失败'))
+          }
+        },
+        fail: () => reject(new Error('微信登录失败'))
       })
     })
+  },
+
+  onDevSkip() {
+    const app = getApp<IAppOption>()
+    app.saveLogin('dev_openid_123', false)
+    wx.setStorageSync('privacyAgreed', true)
+    wx.redirectTo({ url: '/pages/profile/profile' })
+  },
+
+  goPrivacy() {
+    wx.navigateTo({ url: '/pages/privacy/privacy' })
   },
 
   onShareAppMessage() {
