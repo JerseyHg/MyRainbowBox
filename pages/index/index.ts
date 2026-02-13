@@ -5,7 +5,6 @@ Page({
     code: '',
     loading: false,
     autoLogging: true,
-    // 上线前设为 false
     devMode: false,
   },
 
@@ -17,7 +16,6 @@ Page({
     var openid = wx.getStorageSync('openid')
     if (openid) {
       var hasProfile = wx.getStorageSync('hasProfile')
-      // 已登录用户也要检查隐私协议
       this._checkPrivacyThenNavigate(hasProfile)
       return
     }
@@ -40,8 +38,6 @@ Page({
       if (result.success && result.openid) {
         const app = getApp<IAppOption>()
         app.saveLogin(result.openid, result.has_profile)
-
-        // 自动登录成功后也要检查隐私协议
         this._checkPrivacyThenNavigate(result.has_profile)
         return
       }
@@ -71,26 +67,22 @@ Page({
       const result = await verifyInvitation(this.data.code, wxCode)
 
       wx.hideLoading()
+      this.setData({ loading: false })
 
       if (result.success && result.openid) {
         const app = getApp<IAppOption>()
         app.saveLogin(result.openid, result.has_profile)
 
-        wx.showToast({ title: '验证成功', icon: 'success' })
-
-        setTimeout(() => {
-          // 验证成功后检查隐私协议
-          this._checkPrivacyThenNavigate(result.has_profile)
-        }, 1000)
+        // 验证成功 → 检查隐私协议（直接跳页面，不弹 modal）
+        this._checkPrivacyThenNavigate(result.has_profile)
       } else {
         wx.showToast({ title: result.message || '验证失败', icon: 'none' })
       }
     } catch (err: any) {
       wx.hideLoading()
+      this.setData({ loading: false })
       wx.showToast({ title: err.message || '验证失败', icon: 'none' })
     }
-
-    this.setData({ loading: false })
   },
 
   async onRelogin() {
@@ -102,55 +94,38 @@ Page({
       const result = await autoLogin(wxCode)
 
       wx.hideLoading()
+      this.setData({ loading: false })
 
       if (result.success && result.openid) {
         const app = getApp<IAppOption>()
         app.saveLogin(result.openid, result.has_profile)
-
-        wx.showToast({ title: '登录成功', icon: 'success' })
-        setTimeout(() => {
-          // 重新登录后也要检查隐私协议
-          this._checkPrivacyThenNavigate(result.has_profile)
-        }, 1000)
+        this._checkPrivacyThenNavigate(result.has_profile)
       } else {
         wx.showToast({ title: '未找到登记记录，请先使用邀请码登记', icon: 'none' })
       }
     } catch (err) {
       wx.hideLoading()
+      this.setData({ loading: false })
       wx.showToast({ title: '未找到登记记录', icon: 'none' })
     }
-
-    this.setData({ loading: false })
   },
 
   /**
-   * 隐私协议检查 → 通过后跳转
+   * 隐私协议检查
+   * 已同意 → 直接跳转目标页
+   * 未同意 → 跳转到隐私协议页面
    */
   _checkPrivacyThenNavigate(hasProfile: boolean) {
     const agreed = wx.getStorageSync('privacyAgreed')
+    const target = hasProfile ? 'status' : 'profile'
+
     if (agreed) {
       this._navigateByProfile(hasProfile)
-      return
+    } else {
+      wx.redirectTo({ url: '/pages/privacy/privacy?from=login&target=' + target })
     }
-
-    wx.showModal({
-      title: '用户隐私保护指引',
-      content: '在使用本小程序前，请您阅读并同意《用户隐私保护指引》。我们将收集您的个人信息用于报名审核服务，详情请查看完整隐私指引。',
-      confirmText: '同意并继续',
-      cancelText: '查看详情',
-      success: (res) => {
-        if (res.confirm) {
-          wx.setStorageSync('privacyAgreed', true)
-          this._navigateByProfile(hasProfile)
-        } else {
-          wx.setStorageSync('_pendingNavigate', hasProfile ? 'status' : 'profile')
-          wx.navigateTo({ url: '/pages/privacy/privacy?from=login' })
-        }
-      }
-    })
   },
 
-  /** 根据是否有资料跳转到对应页面 */
   _navigateByProfile(hasProfile: boolean) {
     if (hasProfile) {
       wx.redirectTo({ url: '/pages/status/status' })
@@ -163,11 +138,8 @@ Page({
     return new Promise((resolve, reject) => {
       wx.login({
         success: (res) => {
-          if (res.code) {
-            resolve(res.code)
-          } else {
-            reject(new Error('微信登录失败'))
-          }
+          if (res.code) resolve(res.code)
+          else reject(new Error('微信登录失败'))
         },
         fail: () => reject(new Error('微信登录失败'))
       })
