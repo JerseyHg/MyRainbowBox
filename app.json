@@ -6,6 +6,7 @@
     "pages/codes/codes",
     "pages/privacy/privacy"
   ],
+  "lazyCodeLoading": "requiredComponents",
   "window": {
     "navigationBarTitleText": "报名登记",
     "navigationBarBackgroundColor": "#f0f4f8",
