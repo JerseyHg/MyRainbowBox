@@ -6,14 +6,9 @@ Page({
     currentStep: 0,
     submitting: false,
     name: '', gender: '', age: '', height: '', weight: '',
-    genderOptions: ['男', '女', '其他'],
-    maritalStatus: '', maritalOptions: ['未婚', '离异', '丧偶', '保密'],
+    genderOptions: ['男', '女'],
     bodyType: '', bodyTypeOptions: ['偏瘦', '匀称', '偏壮', '微胖', '较胖'],
     hometown: '', workLocation: '', industry: '',
-    datingPurpose: '',
-    datingPurposeOptions: ['深度了解', '兴趣交流', '都可以', '其他'],
-    wantChildren: '',
-    wantChildrenOptions: ['想要', '不想要', '顺其自然', '不确定'],
     wechatId: '',
     constellation: '',
     constellationOptions: ['白羊座','金牛座','双子座','巨蟹座','狮子座','处女座','天秤座','天蝎座','射手座','摩羯座','水瓶座','双鱼座','不确定'],
@@ -24,8 +19,7 @@ Page({
     selectedHobbies: [],
     customHobby: '',
     lifestyle: '',
-    expRelationship: '', expBodyType: '', expAppearance: '', expAgeRange: '',
-    expHabits: '', expPersonality: '', expLocation: '', expOther: '',
+    idealLife: '',
     specialRequirements: '',
     photos: [],
     uploadedPhotos: [],
@@ -38,37 +32,20 @@ Page({
     var value = e.detail.value
     if (typeof value === 'string' && value.length > 0) {
       var word = filter.detectSensitive(value)
-      if (word) {
-        wx.showToast({ title: '请勿输入违规内容', icon: 'none' })
-        value = filter.filterSensitive(value)
-      }
+      if (word) { wx.showToast({ title: '请勿输入违规内容', icon: 'none' }); value = filter.filterSensitive(value) }
     }
-    var obj = {}
-    obj[key] = value
-    this.setData(obj)
+    var obj = {}; obj[key] = value; this.setData(obj)
   },
 
   onTagTap: function (e) {
-    var key = e.currentTarget.dataset.key
-    var val = e.currentTarget.dataset.val
-    var obj = {}
-    obj[key] = val
-    this.setData(obj)
+    var obj = {}; obj[e.currentTarget.dataset.key] = e.currentTarget.dataset.val; this.setData(obj)
   },
 
   onPick: function (e) {
     var key = e.currentTarget.dataset.key
-    var map = {
-      maritalStatus: 'maritalOptions',
-      constellation: 'constellationOptions',
-      mbti: 'mbtiOptions',
-      datingPurpose: 'datingPurposeOptions',
-      wantChildren: 'wantChildrenOptions'
-    }
+    var map = { maritalStatus: 'maritalOptions', constellation: 'constellationOptions', mbti: 'mbtiOptions' }
     var opts = this.data[map[key]] || []
-    var obj = {}
-    obj[key] = opts[e.detail.value]
-    this.setData(obj)
+    var obj = {}; obj[key] = opts[e.detail.value]; this.setData(obj)
   },
 
   toggleHobby: function (e) {
@@ -76,10 +53,7 @@ Page({
     var list = this.data.selectedHobbies.slice()
     var idx = list.indexOf(hobby)
     if (idx >= 0) { list.splice(idx, 1) }
-    else {
-      if (list.length >= 10) { wx.showToast({ title: '最多选10个', icon: 'none' }); return }
-      list.push(hobby)
-    }
+    else { if (list.length >= 10) { wx.showToast({ title: '最多选10个', icon: 'none' }); return }; list.push(hobby) }
     this.setData({ selectedHobbies: list })
   },
 
@@ -89,15 +63,12 @@ Page({
     if (this.data.selectedHobbies.length >= 10) { wx.showToast({ title: '最多10个', icon: 'none' }); return }
     if (this.data.selectedHobbies.indexOf(val) >= 0) { wx.showToast({ title: '已添加过了', icon: 'none' }); return }
     if (filter.detectSensitive(val)) { wx.showToast({ title: '包含违规内容', icon: 'none' }); return }
-    var list = this.data.selectedHobbies.slice()
-    list.push(val)
+    var list = this.data.selectedHobbies.slice(); list.push(val)
     this.setData({ selectedHobbies: list, customHobby: '' })
   },
 
   removeHobby: function (e) {
-    var idx = e.currentTarget.dataset.i
-    var list = this.data.selectedHobbies.slice()
-    list.splice(idx, 1)
+    var list = this.data.selectedHobbies.slice(); list.splice(e.currentTarget.dataset.i, 1)
     this.setData({ selectedHobbies: list })
   },
 
@@ -106,15 +77,9 @@ Page({
     if (!this.data._photoPrivacyAgreed) {
       wx.showModal({
         title: '照片使用说明',
-        content: '您上传的照片将用于信息审核，我们将严格保护您的隐私。请勿上传包含身份证、银行卡等敏感信息的照片。',
-        confirmText: '我已了解',
-        cancelText: '取消',
-        success: function (res) {
-          if (res.confirm) {
-            that.setData({ _photoPrivacyAgreed: true })
-            that._doChoosePhoto()
-          }
-        }
+        content: '您上传的照片将用于报名审核，我们将严格保护您的隐私。请勿上传包含身份证、银行卡等敏感信息的照片。',
+        confirmText: '我已了解', cancelText: '取消',
+        success: function (res) { if (res.confirm) { that.setData({ _photoPrivacyAgreed: true }); that._doChoosePhoto() } }
       })
       return
     }
@@ -131,10 +96,7 @@ Page({
         var photos = that.data.photos.slice()
         var uploaded = that.data.uploadedPhotos.slice()
         var startIdx = photos.length
-        for (var i = 0; i < res.tempFiles.length; i++) {
-          photos.push(res.tempFiles[i].tempFilePath)
-          uploaded.push('')
-        }
+        for (var i = 0; i < res.tempFiles.length; i++) { photos.push(res.tempFiles[i].tempFilePath); uploaded.push('') }
         that.setData({ photos: photos, uploadedPhotos: uploaded })
         that._uploadNewPhotos(startIdx, res.tempFiles.length)
       }
@@ -142,22 +104,15 @@ Page({
   },
 
   _uploadNewPhotos: function (startIdx, count) {
-    var that = this
-    that.setData({ uploadingPhoto: true })
+    var that = this; that.setData({ uploadingPhoto: true })
     var doUpload = function (i) {
       if (i >= count) { that.setData({ uploadingPhoto: false }); return }
       var idx = startIdx + i
-      var localPath = that.data.photos[idx]
-      api.uploadPhoto(localPath).then(function (serverUrl) {
-        var key = 'uploadedPhotos[' + idx + ']'
-        var obj = {}
-        obj[key] = serverUrl
-        that.setData(obj)
-        doUpload(i + 1)
+      api.uploadPhoto(that.data.photos[idx]).then(function (serverUrl) {
+        var obj = {}; obj['uploadedPhotos[' + idx + ']'] = serverUrl; that.setData(obj); doUpload(i + 1)
       }).catch(function (err) {
         console.error('[Photo] 上传失败:', idx, err)
-        wx.showToast({ title: '第' + (idx + 1) + '张照片上传失败', icon: 'none' })
-        doUpload(i + 1)
+        wx.showToast({ title: '第' + (idx + 1) + '张照片上传失败', icon: 'none' }); doUpload(i + 1)
       })
     }
     doUpload(0)
@@ -165,16 +120,12 @@ Page({
 
   removePhoto: function (e) {
     var idx = e.currentTarget.dataset.i
-    var photos = this.data.photos.slice()
-    var uploaded = this.data.uploadedPhotos.slice()
-    photos.splice(idx, 1)
-    uploaded.splice(idx, 1)
+    var photos = this.data.photos.slice(); var uploaded = this.data.uploadedPhotos.slice()
+    photos.splice(idx, 1); uploaded.splice(idx, 1)
     this.setData({ photos: photos, uploadedPhotos: uploaded })
   },
 
-  previewPhoto: function (e) {
-    wx.previewImage({ current: e.currentTarget.dataset.url, urls: this.data.photos })
-  },
+  previewPhoto: function (e) { wx.previewImage({ current: e.currentTarget.dataset.url, urls: this.data.photos }) },
 
   goStep: function (e) {
     var s = parseInt(e.currentTarget.dataset.s)
@@ -182,8 +133,7 @@ Page({
   },
   nextStep: function () {
     if (!this.validateStep()) return
-    this.setData({ currentStep: this.data.currentStep + 1 })
-    wx.pageScrollTo({ scrollTop: 0, duration: 200 })
+    this.setData({ currentStep: this.data.currentStep + 1 }); wx.pageScrollTo({ scrollTop: 0, duration: 200 })
   },
   prevStep: function () {
     if (this.data.currentStep > 0) { this.setData({ currentStep: this.data.currentStep - 1 }); wx.pageScrollTo({ scrollTop: 0, duration: 200 }) }
@@ -200,22 +150,39 @@ Page({
     return true
   },
 
+  testTap: function() {
+    console.log('testTap 被点击了')
+    wx.showModal({ title: '测试', content: '按钮可以点击' })
+  },
+
   onSubmit: function () {
     var that = this
     if (that.data.uploadingPhoto) { wx.showToast({ title: '照片还在上传中，请稍候', icon: 'none' }); return }
-    wx.showModal({
-      title: '确认提交',
-      content: '提交即表示您同意我们按照《用户隐私保护指引》收集和使用您的信息。',
-      confirmText: '同意并提交',
-      success: function (res) { if (res.confirm) { that._doSubmit() } }
-    })
+    wx.hideToast()
+    wx.hideLoading()
+    setTimeout(function() {
+      console.log('=== 即将调用 showModal ===')
+      wx.showModal({
+        title: '确认提交',
+        content: '确定要提交吗？',
+        success: function (res) {
+          console.log('=== showModal success ===', res)
+          if (res.confirm) { that._doSubmit() }
+        },
+        fail: function (err) {
+          console.error('=== showModal fail ===', err)
+        },
+        complete: function () {
+          console.log('=== showModal complete ===')
+        }
+      })
+    }, 500)
   },
 
   _doSubmit: function () {
     var that = this
     if (that.data.submitting) return
-    that.setData({ submitting: true })
-    wx.showLoading({ title: '提交中...', mask: true })
+    that.setData({ submitting: true }); wx.showLoading({ title: '提交中...', mask: true })
     var d = that.data
     var validPhotos = d.uploadedPhotos.filter(function (url) { return !!url })
     var profileData = {
@@ -225,32 +192,22 @@ Page({
       hometown: d.hometown || undefined, work_location: d.workLocation || undefined,
       industry: d.industry || undefined, constellation: d.constellation || undefined,
       mbti: d.mbti || undefined, health_condition: d.healthCondition || undefined,
-      dating_purpose: d.datingPurpose || undefined, want_children: d.wantChildren || undefined,
       wechat_id: d.wechatId || undefined,
       hobbies: d.selectedHobbies, lifestyle: d.lifestyle || undefined,
-      expectation: {
-        relationship: d.expRelationship || undefined, body_type: d.expBodyType || undefined,
-        appearance: d.expAppearance || undefined, age_range: d.expAgeRange || undefined,
-        habits: d.expHabits || undefined, personality: d.expPersonality || undefined,
-        location: d.expLocation || undefined, other: d.expOther || undefined,
-      },
-      special_requirements: d.specialRequirements || undefined, photos: validPhotos,
+      special_requirements: (d.idealLife || '') + (d.specialRequirements ? '\n' + d.specialRequirements : '') || undefined,
+      photos: validPhotos,
     }
-    if (!filter.checkBeforeSubmit(profileData)) {
-      wx.hideLoading(); that.setData({ submitting: false }); return
-    }
+    if (!filter.checkBeforeSubmit(profileData)) { wx.hideLoading(); that.setData({ submitting: false }); return }
+
     api.submitProfile(profileData).then(function (result) {
       wx.hideLoading()
       if (result.success) {
-        var app = getApp()
-        app.globalData.hasProfile = true
-        wx.setStorageSync('hasProfile', true)
+        var app = getApp(); app.globalData.hasProfile = true; wx.setStorageSync('hasProfile', true)
         wx.showToast({ title: '提交成功！', icon: 'success', duration: 2000 })
         var serialNumber = (result.data && result.data.serial_number) || ''
         setTimeout(function () {
           wx.showModal({
-            title: '提交成功',
-            content: '您的编号为 ' + serialNumber + '，资料已进入审核流程，请耐心等待。',
+            title: '报名成功', content: '您的编号为 ' + serialNumber + '，报名信息已进入审核流程，请耐心等待。',
             showCancel: false, confirmText: '我知道了',
             success: function () { wx.redirectTo({ url: '/pages/status/status' }) }
           })
@@ -259,15 +216,13 @@ Page({
     }).catch(function (err) {
       wx.hideLoading()
       var errMsg = err.message || '提交失败，请重试'
-      if (errMsg.indexOf('已经提交过') >= 0) {
-        wx.showModal({ title: '提示', content: '您已提交过资料，无需重复提交。', showCancel: false })
-      } else { wx.showToast({ title: errMsg, icon: 'none', duration: 3000 }) }
+      if (errMsg.indexOf('已经提交过') >= 0) { wx.showModal({ title: '提示', content: '您已提交过报名信息，无需重复提交。', showCancel: false }) }
+      else { wx.showToast({ title: errMsg, icon: 'none', duration: 3000 }) }
     }).finally(function () { that.setData({ submitting: false }) })
   },
 
   onLoad: function (options) {
-    var openid = wx.getStorageSync('openid')
-    if (!openid) { wx.redirectTo({ url: '/pages/index/index' }); return }
+    if (!wx.getStorageSync('openid')) { wx.redirectTo({ url: '/pages/index/index' }); return }
     if (options && options.mode === 'view') { this._loadExistingProfile() }
   },
   _loadExistingProfile: function () {
@@ -275,17 +230,10 @@ Page({
     api.getMyProfile().then(function (result) {
       wx.hideLoading()
       if (result.success && result.data) {
-        var profile = result.data
-        if (profile.status === 'approved' || profile.status === 'published') {
-          wx.showModal({ title: '提示', content: '您的资料已通过审核（编号: ' + (profile.serial_number || '') + '）', showCancel: false })
-        } else if (profile.status === 'pending') {
-          wx.showModal({ title: '提示', content: '您的资料正在审核中，请耐心等待。', showCancel: false })
-        }
+        var p = result.data
+        if (p.status === 'approved' || p.status === 'published') { wx.showModal({ title: '提示', content: '您的报名已通过审核（编号: ' + (p.serial_number || '') + '）', showCancel: false }) }
+        else if (p.status === 'pending') { wx.showModal({ title: '提示', content: '您的报名正在审核中，请耐心等待。', showCancel: false }) }
       }
-    }).catch(function (err) {
-      wx.hideLoading()
-      if (err.message && err.message.indexOf('不存在') >= 0) { console.log('[Profile] 用户尚未提交资料') }
-      else { console.error('[Profile] 加载资料失败:', err) }
-    })
+    }).catch(function (err) { wx.hideLoading() })
   },
 })

@@ -53,12 +53,12 @@ Page({
     const availableCode = this.data.codes.find((c: any) => !c.is_used)
     if (availableCode) {
       return {
-        title: '送你一个邀请码，来登记个人信息吧',
+        title: '送你一个邀请码，快来报名吧',
         path: `/pages/index/index?code=${availableCode.code}`,
       }
     }
     return {
-      title: '信息登记 - 记录真实的你',
+      title: '报名登记 - 记录真实的你',
       path: '/pages/index/index',
     }
   },
