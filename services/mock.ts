@@ -75,7 +75,16 @@ export async function submitProfile(data: any) {
   const profile = {
     id: Date.now(), serial_number: serialNumber, status: 'pending',
     rejection_reason: '', create_time: _now(), published_at: null,
-    invitation_quota: 0, name: data.name, photos: data.photos || [],
+    invitation_quota: 0,
+    name: data.name || '', gender: data.gender || '',
+    age: data.age || 0, height: data.height || 0, weight: data.weight || 0,
+    body_type: data.body_type || '', hometown: data.hometown || '',
+    work_location: data.work_location || '', industry: data.industry || '',
+    wechat_id: data.wechat_id || '', constellation: data.constellation || '',
+    mbti: data.mbti || '', health_condition: data.health_condition || '',
+    hobbies: data.hobbies || [], lifestyle: data.lifestyle || '',
+    special_requirements: data.special_requirements || '',
+    photos: data.photos || [],
   }
   mockDB.profiles[openid] = profile
   wx.setStorageSync('mock_registered', { openid, serial_number: serialNumber, status: 'pending', name: data.name, create_time: _now() })

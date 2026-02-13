@@ -5,6 +5,7 @@ Page({
   data: {
     currentStep: 0,
     submitting: false,
+    isEditMode: false,
     name: '', gender: '', age: '', height: '', weight: '',
     genderOptions: ['男', '女'],
     bodyType: '', bodyTypeOptions: ['偏瘦', '匀称', '偏壮', '微胖', '较胖'],
@@ -163,8 +164,8 @@ Page({
     setTimeout(function() {
       console.log('=== 即将调用 showModal ===')
       wx.showModal({
-        title: '确认提交',
-        content: '确定要提交吗？',
+        title: that.data.isEditMode ? '确认更新' : '确认提交',
+        content: that.data.isEditMode ? '确定要更新您的资料吗？' : '确定要提交吗？',
         success: function (res) {
           console.log('=== showModal success ===', res)
           if (res.confirm) { that._doSubmit() }
@@ -199,19 +200,32 @@ Page({
     }
     if (!filter.checkBeforeSubmit(profileData)) { wx.hideLoading(); that.setData({ submitting: false }); return }
 
-    api.submitProfile(profileData).then(function (result) {
+    // 编辑模式用 updateProfile，新建用 submitProfile
+    var submitFn = that.data.isEditMode ? api.updateProfile : api.submitProfile
+
+    submitFn(profileData).then(function (result) {
       wx.hideLoading()
       if (result.success) {
         var app = getApp(); app.globalData.hasProfile = true; wx.setStorageSync('hasProfile', true)
-        wx.showToast({ title: '提交成功！', icon: 'success', duration: 2000 })
-        var serialNumber = (result.data && result.data.serial_number) || ''
-        setTimeout(function () {
-          wx.showModal({
-            title: '报名成功', content: '您的编号为 ' + serialNumber + '，报名信息已进入审核流程，请耐心等待。',
-            showCancel: false, confirmText: '我知道了',
-            success: function () { wx.redirectTo({ url: '/pages/status/status' }) }
-          })
-        }, 500)
+
+        if (that.data.isEditMode) {
+          // 编辑模式：提示更新成功，返回状态页
+          wx.showToast({ title: '更新成功！', icon: 'success', duration: 1500 })
+          setTimeout(function () {
+            wx.navigateBack()
+          }, 1500)
+        } else {
+          // 新建模式：原有逻辑
+          wx.showToast({ title: '提交成功！', icon: 'success', duration: 2000 })
+          var serialNumber = (result.data && result.data.serial_number) || ''
+          setTimeout(function () {
+            wx.showModal({
+              title: '报名成功', content: '您的编号为 ' + serialNumber + '，报名信息已进入审核流程，请耐心等待。',
+              showCancel: false, confirmText: '我知道了',
+              success: function () { wx.redirectTo({ url: '/pages/status/status' }) }
+            })
+          }, 500)
+        }
       } else { wx.showToast({ title: result.message || '提交失败', icon: 'none' }) }
     }).catch(function (err) {
       wx.hideLoading()
@@ -223,8 +237,50 @@ Page({
 
   onLoad: function (options) {
     if (!wx.getStorageSync('openid')) { wx.redirectTo({ url: '/pages/index/index' }); return }
-    if (options && options.mode === 'view') { this._loadExistingProfile() }
+
+    if (options && options.mode === 'edit') {
+      this.setData({ isEditMode: true })
+      this._loadForEdit()
+    } else if (options && options.mode === 'view') {
+      this._loadExistingProfile()
+    }
   },
+
+  /** 编辑模式：加载已有资料填充表单 */
+  _loadForEdit: function () {
+    var that = this
+    wx.showLoading({ title: '加载中...' })
+    api.getMyProfile().then(function (result) {
+      wx.hideLoading()
+      if (result.success && result.data) {
+        var p = result.data
+        that.setData({
+          name: p.name || '',
+          gender: p.gender || '',
+          age: p.age ? String(p.age) : '',
+          height: p.height ? String(p.height) : '',
+          weight: p.weight ? String(p.weight) : '',
+          bodyType: p.body_type || '',
+          hometown: p.hometown || '',
+          workLocation: p.work_location || '',
+          industry: p.industry || '',
+          wechatId: p.wechat_id || '',
+          constellation: p.constellation || '',
+          mbti: p.mbti || '',
+          healthCondition: p.health_condition || '',
+          selectedHobbies: p.hobbies || [],
+          lifestyle: p.lifestyle || '',
+          specialRequirements: p.special_requirements || '',
+          photos: p.photos || [],
+          uploadedPhotos: p.photos || [],
+        })
+      }
+    }).catch(function (err) {
+      wx.hideLoading()
+      wx.showToast({ title: '加载失败', icon: 'none' })
+    })
+  },
+
   _loadExistingProfile: function () {
     wx.showLoading({ title: '加载中...' })
     api.getMyProfile().then(function (result) {
