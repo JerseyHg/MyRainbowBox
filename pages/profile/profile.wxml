@@ -76,7 +76,7 @@
     <view class="card">
       <text class="card-title">联系方式</text>
       <view class="field" style="margin-bottom:0;">
-        <text class="label">微信号</text>
+        <text class="label">联系方式</text>
         <input class="input" type="text" placeholder="用于报名通过后联系您"
           value="{{wechatId}}" bindinput="onInput" data-key="wechatId" />
       </view>
@@ -137,7 +137,7 @@
       </view>
       <view class="field" style="margin-bottom:0;">
         <text class="label">理想生活</text>
-        <textarea class="textarea" placeholder="描述一下你向往的生活方式，希望身边有什么样的人陪伴..." value="{{idealLife}}" bindinput="onInput" data-key="idealLife" maxlength="300" />
+        <textarea class="textarea" placeholder="描述一下你向往的生活方式..." value="{{idealLife}}" bindinput="onInput" data-key="idealLife" maxlength="300" />
       </view>
     </view>
 
@@ -188,7 +188,7 @@
       <view class="pv-row" wx:if="{{hometown}}"><text class="pv-l">籍贯</text><text class="pv-r">{{hometown}}</text></view>
       <view class="pv-row" wx:if="{{workLocation}}"><text class="pv-l">工作地</text><text class="pv-r">{{workLocation}}</text></view>
       <view class="pv-row" wx:if="{{industry}}"><text class="pv-l">行业</text><text class="pv-r">{{industry}}</text></view>
-      <view class="pv-row" wx:if="{{wechatId}}"><text class="pv-l">微信号</text><text class="pv-r">{{wechatId}}</text></view>
+      <view class="pv-row" wx:if="{{wechatId}}"><text class="pv-l">联系方式</text><text class="pv-r">{{wechatId}}</text></view>
 
       <text class="section-label" wx:if="{{constellation || mbti}}">个人特征</text>
       <view class="pv-row" wx:if="{{constellation}}"><text class="pv-l">星座</text><text class="pv-r">{{constellation}}</text></view>
