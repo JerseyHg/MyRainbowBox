@@ -5,7 +5,7 @@ Page({
     code: '',
     loading: false,
     autoLogging: true,
-    devMode: true,
+    devMode: false,
   },
 
   onLoad: function (options) {
@@ -24,7 +24,6 @@ Page({
       return
     }
 
-    // 退出登录过来的，不自动跳，让用户选择
     if (options && options.from === 'logout') {
       this.setData({ autoLogging: false })
       return
@@ -100,21 +99,19 @@ Page({
             app.saveLogin(result.openid, result.has_profile)
 
             wx.showToast({ title: '验证成功', icon: 'success' })
-
             setTimeout(function () {
               if (result.has_profile) {
                 wx.redirectTo({ url: '/pages/status/status' })
               } else {
                 wx.redirectTo({ url: '/pages/profile/profile' })
               }
-            }, 800)
+            }, 1000)
           } else {
             wx.showToast({ title: result.message || '验证失败', icon: 'none' })
           }
         }).catch(function (err) {
           wx.hideLoading()
-          console.error('[Index] 验证失败:', err)
-          wx.showToast({ title: err.message || '验证失败，请重试', icon: 'none' })
+          wx.showToast({ title: err.message || '验证失败', icon: 'none' })
         }).finally(function () {
           that.setData({ loading: false })
         })
@@ -127,21 +124,59 @@ Page({
     })
   },
 
-  /** 已注册用户直接登录 */
   onRelogin: function () {
     var that = this
-    that.setData({ loading: true, autoLogging: true })
+    that.setData({ loading: true })
     wx.showLoading({ title: '登录中...' })
 
-    this._tryAutoLogin()
+    wx.login({
+      success: function (loginRes) {
+        if (!loginRes.code) {
+          wx.hideLoading()
+          that.setData({ loading: false })
+          return
+        }
+
+        api.autoLogin(loginRes.code).then(function (result) {
+          wx.hideLoading()
+          if (result.success && result.openid) {
+            var app = getApp()
+            app.saveLogin(result.openid, result.has_profile)
+            wx.showToast({ title: '登录成功', icon: 'success' })
+            setTimeout(function () {
+              if (result.has_profile) {
+                wx.redirectTo({ url: '/pages/status/status' })
+              } else {
+                wx.redirectTo({ url: '/pages/profile/profile' })
+              }
+            }, 1000)
+          } else {
+            wx.showToast({ title: '未找到登记记录，请先使用邀请码登记', icon: 'none' })
+          }
+        }).catch(function () {
+          wx.hideLoading()
+          wx.showToast({ title: '未找到登记记录', icon: 'none' })
+        }).finally(function () {
+          that.setData({ loading: false })
+        })
+      }
+    })
   },
 
   onDevSkip: function () {
     var app = getApp()
     app.saveLogin('dev_openid_123', false)
-    wx.showToast({ title: '已跳过', icon: 'success' })
-    setTimeout(function () {
-      wx.redirectTo({ url: '/pages/profile/profile' })
-    }, 500)
+    wx.redirectTo({ url: '/pages/profile/profile' })
+  },
+
+  goPrivacy: function () {
+    wx.navigateTo({ url: '/pages/privacy/privacy' })
+  },
+
+  onShareAppMessage: function () {
+    return {
+      title: '送你一个邀请码，来登记个人信息吧',
+      path: '/pages/index/index',
+    }
   },
 })

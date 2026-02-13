@@ -2,56 +2,37 @@
  * 工具函数
  */
 
-/** 显示 Toast 提示 */
 export function showToast(title: string, icon: 'success' | 'error' | 'none' = 'none') {
   wx.showToast({ title, icon, duration: 2000 })
 }
 
-/** 显示 Loading */
 export function showLoading(title = '加载中...') {
   wx.showLoading({ title, mask: true })
 }
 
-/** 隐藏 Loading */
 export function hideLoading() {
   wx.hideLoading()
 }
 
-/** 显示确认对话框 */
 export function showConfirm(content: string, title = '提示'): Promise<boolean> {
   return new Promise((resolve) => {
     wx.showModal({
-      title,
-      content,
-      success(res) {
-        resolve(res.confirm)
-      },
-      fail() {
-        resolve(false)
-      },
+      title, content,
+      success(res) { resolve(res.confirm) },
+      fail() { resolve(false) },
     })
   })
 }
 
-/** 获取微信登录 code */
 export function getWxLoginCode(): Promise<string> {
   return new Promise((resolve, reject) => {
     wx.login({
-      success(res) {
-        if (res.code) {
-          resolve(res.code)
-        } else {
-          reject(new Error('微信登录失败'))
-        }
-      },
-      fail(err) {
-        reject(new Error(err.errMsg || '微信登录失败'))
-      },
+      success(res) { res.code ? resolve(res.code) : reject(new Error('微信登录失败')) },
+      fail(err) { reject(new Error(err.errMsg || '微信登录失败')) },
     })
   })
 }
 
-/** 检查是否已登录 */
 export function isLoggedIn(): boolean {
   return !!wx.getStorageSync('openid')
 }
@@ -74,10 +55,7 @@ export const MBTI_TYPES = [
 export const BODY_TYPES = ['偏瘦', '匀称', '偏壮', '微胖', '较胖']
 
 /** 婚姻状况 */
-export const MARITAL_STATUSES = ['未婚', '离异', '丧偶']
-
-/** 出柜状态 */
-export const COMING_OUT_STATUSES = ['完全出柜', '半出柜', '未出柜']
+export const MARITAL_STATUSES = ['未婚', '离异', '丧偶', '保密']
 
 /** 兴趣爱好标签 */
 export const HOBBY_TAGS = [

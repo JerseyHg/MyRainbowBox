@@ -1,17 +1,17 @@
 /**
  * 小程序入口
- * 彩虹注册
+ * 信息登记
  */
 App({
   globalData: {
     openid: '',
     hasProfile: false,
-    // TODO: 部署前替换为实际域名
+    // TODO: 部署前替换为实际域名（必须 HTTPS）
     baseUrl: 'http://111.229.254.50:8000/api/v1',
 
     // ⬇️ Mock 模式：设为 true 则无需后端，使用本地模拟数据
     // ⬇️ 上线前务必改为 false
-    mockMode: true,
+    mockMode: false,
   },
 
   onLaunch: function () {
@@ -21,7 +21,7 @@ App({
     this.globalData.hasProfile = hasProfile
 
     if (this.globalData.mockMode) {
-      console.log('[App] ⚠️ Mock 模式已开启，所有接口使用模拟数据')
+      console.log('[App] Mock 模式已开启，所有接口使用模拟数据')
     }
 
     console.log('[App] onLaunch, openid:', openid ? openid.substring(0, 10) + '...' : '(无)')
@@ -41,6 +41,5 @@ App({
     this.globalData.hasProfile = false
     wx.removeStorageSync('openid')
     wx.removeStorageSync('hasProfile')
-    // 注意：不清除 mock_registered，保留用户身份，方便重新登录
   },
 })

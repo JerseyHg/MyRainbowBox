@@ -18,12 +18,12 @@
   font-size: 24rpx; font-weight: 600;
   display: flex; align-items: center; justify-content: center;
 }
-.step.active .step-dot { background: #E8457C; color: #fff; }
-.step.current .step-dot { box-shadow: 0 0 0 6rpx rgba(232,69,124,0.2); }
+.step.active .step-dot { background: #4A90D9; color: #fff; }
+.step.current .step-dot { box-shadow: 0 0 0 6rpx rgba(74,144,217,0.2); }
 .step-text { font-size: 20rpx; color: #999; margin-top: 6rpx; }
-.step.active .step-text { color: #E8457C; }
+.step.active .step-text { color: #4A90D9; }
 .step-line { width: 50rpx; height: 4rpx; background: #e0e0e0; margin: 0 6rpx; margin-bottom: 22rpx; }
-.step-line.done { background: #E8457C; }
+.step-line.done { background: #4A90D9; }
 
 /* ===== 卡片 ===== */
 .card {
@@ -59,14 +59,14 @@
   padding: 14rpx 28rpx; border-radius: 32rpx; font-size: 26rpx;
   background: #f5f5f5; color: #666; border: 2rpx solid #eee;
 }
-.tag.active { background: rgba(232,69,124,0.1); color: #E8457C; border-color: #E8457C; }
+.tag.active { background: rgba(74,144,217,0.1); color: #4A90D9; border-color: #4A90D9; }
 
 /* ===== 已选兴趣 ===== */
 .selected-hobbies { display: flex; flex-wrap: wrap; gap: 12rpx; margin-bottom: 20rpx; }
 .selected-tag {
   display: flex; align-items: center; gap: 8rpx;
   padding: 10rpx 20rpx; border-radius: 28rpx;
-  background: #E8457C; color: #fff; font-size: 24rpx;
+  background: #4A90D9; color: #fff; font-size: 24rpx;
 }
 .selected-del { font-size: 20rpx; opacity: 0.8; }
 
@@ -75,10 +75,18 @@
 .hobby-input { flex: 1; }
 .hobby-add-btn {
   width: 120rpx; height: 88rpx; line-height: 88rpx;
-  background: #E8457C; color: #fff; font-size: 26rpx;
+  background: #4A90D9; color: #fff; font-size: 26rpx;
   border-radius: 12rpx; padding: 0; text-align: center;
 }
 .hobby-add-btn::after { border: none; }
+
+/* ===== 隐私提醒 ===== */
+.privacy-notice {
+  background: #FFF8E1; padding: 16rpx 20rpx; border-radius: 12rpx; margin-bottom: 16rpx;
+}
+.privacy-notice-text {
+  font-size: 24rpx; color: #F57C00; line-height: 1.6;
+}
 
 /* ===== 照片 ===== */
 .photo-grid { display: flex; flex-wrap: wrap; gap: 16rpx; }
@@ -101,16 +109,22 @@
 }
 .add-icon { font-size: 56rpx; color: #ccc; line-height: 1; }
 .add-text { font-size: 22rpx; color: #bbb; margin-top: 6rpx; }
+.photo-status {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex; align-items: center; justify-content: center;
+}
+.photo-status-text { color: #fff; font-size: 22rpx; }
 
 /* ===== 确认页 ===== */
-.confirm-card { background: #fffbfc; border: 2rpx solid rgba(232,69,124,0.08); }
+.confirm-card { background: #f9fbff; border: 2rpx solid rgba(74,144,217,0.08); }
 
 .section-label {
   display: block;
-  font-size: 28rpx; font-weight: 600; color: #E8457C;
+  font-size: 28rpx; font-weight: 600; color: #4A90D9;
   margin-top: 28rpx; margin-bottom: 12rpx;
   padding-bottom: 10rpx;
-  border-bottom: 2rpx solid rgba(232,69,124,0.1);
+  border-bottom: 2rpx solid rgba(74,144,217,0.1);
 }
 
 .pv-row {
@@ -124,16 +138,14 @@
 .pv-hobbies { display: flex; flex-wrap: wrap; gap: 10rpx; padding: 8rpx 0; }
 .pv-hobby-tag {
   padding: 8rpx 20rpx; border-radius: 24rpx;
-  background: rgba(232,69,124,0.08); color: #E8457C; font-size: 24rpx;
+  background: rgba(74,144,217,0.08); color: #4A90D9; font-size: 24rpx;
 }
 
 .pv-photos { display: flex; flex-wrap: wrap; gap: 12rpx; padding: 8rpx 0; }
 .pv-photo { width: 150rpx; height: 150rpx; border-radius: 10rpx; }
 .pv-empty { font-size: 26rpx; color: #ccc; padding: 8rpx 0; }
 
-.confirm-tip {
-  padding: 20rpx 12rpx; font-size: 24rpx; color: #bbb; line-height: 1.7;
-}
+.confirm-tip { padding: 20rpx 12rpx; font-size: 24rpx; color: #bbb; line-height: 1.7; }
 
 /* ===== 底部按钮 ===== */
 .bottom-bar {
@@ -147,7 +159,7 @@
 }
 .btn-next, .btn-submit {
   flex: 1;
-  background: linear-gradient(135deg, #E8457C, #F06292);
+  background: linear-gradient(135deg, #4A90D9, #5BA0E9);
   color: #fff; border: none; border-radius: 48rpx;
   height: 88rpx; line-height: 88rpx;
   font-size: 32rpx; font-weight: 500;
@@ -156,19 +168,11 @@
 .btn-back {
   flex: 1;
   background-color: #ffffff !important;
-  color: #E8457C !important;
-  border: 2rpx solid #E8457C !important;
+  color: #4A90D9 !important;
+  border: 2rpx solid #4A90D9 !important;
   border-radius: 48rpx;
   height: 88rpx;
   line-height: 84rpx;
   font-size: 32rpx;
 }
 .btn-back::after { border: none; }
-.photo-status {
-  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.4);
-  display: flex; align-items: center; justify-content: center;
-}
-.photo-status-text {
-  color: #fff; font-size: 22rpx;
-}

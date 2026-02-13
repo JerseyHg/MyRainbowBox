@@ -1,5 +1,6 @@
 import { submitProfile, uploadPhoto, getMyProfile } from '../../services/api'
 import type { ProfileData } from '../../services/api'
+var filter = require('../../utils/filter')
 
 Page({
   data: {
@@ -8,12 +9,12 @@ Page({
 
     // 步骤0: 基本信息
     name: '', gender: '', age: '', height: '', weight: '',
-    genderOptions: ['男性', '女性', '跨性别', '非二元', '其他'],
+    genderOptions: ['男', '女', '其他'],
     maritalStatus: '', maritalOptions: ['未婚', '离异', '丧偶', '保密'],
     bodyType: '', bodyTypeOptions: ['偏瘦', '匀称', '偏壮', '微胖', '较胖'],
     hometown: '', workLocation: '', industry: '',
     datingPurpose: '',
-    datingPurposeOptions: ['找恋人', '找朋友', '都可以', '其他'],
+    datingPurposeOptions: ['深度了解', '兴趣交流', '都可以', '其他'],
     wantChildren: '',
     wantChildrenOptions: ['想要', '不想要', '顺其自然', '不确定'],
     wechatId: '',
@@ -23,30 +24,43 @@ Page({
     constellationOptions: ['白羊座','金牛座','双子座','巨蟹座','狮子座','处女座','天秤座','天蝎座','射手座','摩羯座','水瓶座','双鱼座','不确定'],
     mbti: '',
     mbtiOptions: ['INTJ','INTP','ENTJ','ENTP','INFJ','INFP','ENFJ','ENFP','ISTJ','ISFJ','ESTJ','ESFJ','ISTP','ISFP','ESTP','ESFP','不确定'],
-    comingOutStatus: '', comingOutOptions: ['完全出柜', '半出柜', '未出柜', '不想说'],
     healthCondition: '',
     hobbyTags: ['健身','运动','旅行','摄影','音乐','电影','阅读','游戏','美食','烹饪','画画','舞蹈','徒步','骑行','游泳','瑜伽','露营','钓鱼','桌游','剧本杀','宠物','园艺'],
     selectedHobbies: [] as string[],
     customHobby: '',
     lifestyle: '',
 
-    // 步骤2: 期待对象 + 照片
+    // 步骤2: 期望匹配 + 照片
     expRelationship: '', expBodyType: '', expAppearance: '', expAgeRange: '',
     expHabits: '', expPersonality: '', expLocation: '', expOther: '',
     specialRequirements: '',
-    photos: [] as string[],           // 展示用 (本地临时路径)
-    uploadedPhotos: [] as string[],   // 已上传的服务器URL
+    photos: [] as string[],
+    uploadedPhotos: [] as string[],
     uploadingPhoto: false,
+
+    // 照片隐私确认
+    _photoPrivacyAgreed: false,
   },
 
   // =========================================
-  //  通用事件
+  //  通用事件（含敏感词过滤）
   // =========================================
 
   onInput(e: any) {
     var key = e.currentTarget.dataset.key
+    var value = e.detail.value
+
+    // 对文本输入做敏感词过滤
+    if (typeof value === 'string' && value.length > 0) {
+      var word = filter.detectSensitive(value)
+      if (word) {
+        wx.showToast({ title: '请勿输入违规内容', icon: 'none' })
+        value = filter.filterSensitive(value)
+      }
+    }
+
     var obj: any = {}
-    obj[key] = e.detail.value
+    obj[key] = value
     this.setData(obj)
   },
 
@@ -64,7 +78,6 @@ Page({
       maritalStatus: 'maritalOptions',
       constellation: 'constellationOptions',
       mbti: 'mbtiOptions',
-      comingOutStatus: 'comingOutOptions',
       datingPurpose: 'datingPurposeOptions',
       wantChildren: 'wantChildrenOptions'
     }
@@ -102,6 +115,10 @@ Page({
     if (this.data.selectedHobbies.indexOf(val) >= 0) {
       wx.showToast({ title: '已添加过了', icon: 'none' }); return
     }
+    // 过滤自定义兴趣
+    if (filter.detectSensitive(val)) {
+      wx.showToast({ title: '包含违规内容', icon: 'none' }); return
+    }
     var list = this.data.selectedHobbies.slice()
     list.push(val)
     this.setData({ selectedHobbies: list, customHobby: '' })
@@ -115,10 +132,33 @@ Page({
   },
 
   // =========================================
-  //  照片：选择 + 即时上传
+  //  照片：选择 + 即时上传（含隐私确认）
   // =========================================
 
   choosePhoto() {
+    var that = this
+
+    // 首次上传弹出隐私提醒
+    if (!this.data._photoPrivacyAgreed) {
+      wx.showModal({
+        title: '照片使用说明',
+        content: '您上传的照片将用于信息审核，我们将严格保护您的隐私。请勿上传包含身份证、银行卡等敏感信息的照片。',
+        confirmText: '我已了解',
+        cancelText: '取消',
+        success: (res) => {
+          if (res.confirm) {
+            that.setData({ _photoPrivacyAgreed: true })
+            that._doChoosePhoto()
+          }
+        }
+      })
+      return
+    }
+
+    this._doChoosePhoto()
+  },
+
+  _doChoosePhoto() {
     var that = this
     var remaining = 6 - that.data.photos.length
     if (remaining <= 0) {
@@ -133,24 +173,20 @@ Page({
       sizeType: ['compressed'],
       success(res) {
         var newFiles = res.tempFiles
-        // 先把本地路径加到展示列表
         var photos = that.data.photos.slice()
         var uploaded = that.data.uploadedPhotos.slice()
 
         for (var i = 0; i < newFiles.length; i++) {
           var localPath = newFiles[i].tempFilePath
           photos.push(localPath)
-          uploaded.push('')  // 占位，等上传完成后替换
+          uploaded.push('')
         }
         that.setData({ photos: photos, uploadedPhotos: uploaded })
-
-        // 逐张上传到服务器
         that._uploadNewPhotos(photos.length - newFiles.length, newFiles.length)
       }
     })
   },
 
-  /** 从 startIdx 开始上传 count 张照片 */
   async _uploadNewPhotos(startIdx: number, count: number) {
     this.setData({ uploadingPhoto: true })
 
@@ -160,7 +196,6 @@ Page({
 
       try {
         var serverUrl = await uploadPhoto(localPath)
-        // 更新对应位置的服务器URL
         var key = 'uploadedPhotos[' + idx + ']'
         var obj: any = {}
         obj[key] = serverUrl
@@ -169,7 +204,6 @@ Page({
       } catch (err: any) {
         console.error('[Photo] 上传失败:', idx, err)
         wx.showToast({ title: '第' + (idx + 1) + '张照片上传失败', icon: 'none' })
-        // 上传失败的保留空字符串，提交时会过滤掉
       }
     }
 
@@ -227,11 +261,10 @@ Page({
   },
 
   // =========================================
-  //  提交资料（对接后端）
+  //  提交资料（含隐私确认 + 敏感词检查）
   // =========================================
 
   onSubmit() {
-    // 检查是否还有照片在上传中
     if (this.data.uploadingPhoto) {
       wx.showToast({ title: '照片还在上传中，请稍候', icon: 'none' })
       return
@@ -239,7 +272,8 @@ Page({
 
     wx.showModal({
       title: '确认提交',
-      content: '提交后将进入审核流程，确定提交吗？',
+      content: '提交即表示您同意我们按照《用户隐私保护指引》收集和使用您的信息。',
+      confirmText: '同意并提交',
       success: (res) => {
         if (res.confirm) {
           this._doSubmit()
@@ -254,10 +288,7 @@ Page({
     wx.showLoading({ title: '提交中...', mask: true })
 
     try {
-      // 组装提交数据
       var d = this.data
-
-      // 过滤掉上传失败的照片（空字符串）
       var validPhotos = d.uploadedPhotos.filter(function(url) { return !!url })
 
       var profileData: ProfileData = {
@@ -277,7 +308,6 @@ Page({
         dating_purpose: d.datingPurpose || undefined,
         want_children: d.wantChildren || undefined,
         wechat_id: d.wechatId || undefined,
-        coming_out_status: d.comingOutStatus || undefined,
         hobbies: d.selectedHobbies,
         lifestyle: d.lifestyle || undefined,
         expectation: {
@@ -294,14 +324,19 @@ Page({
         photos: validPhotos,
       }
 
-      console.log('[Profile] 提交数据:', JSON.stringify(profileData))
+      // 提交前敏感词检查
+      if (!filter.checkBeforeSubmit(profileData)) {
+        wx.hideLoading()
+        this.setData({ submitting: false })
+        return
+      }
 
+      console.log('[Profile] 提交数据:', JSON.stringify(profileData))
       var result = await submitProfile(profileData)
 
       wx.hideLoading()
 
       if (result.success) {
-        // 更新本地状态
         var app = getApp<IAppOption>()
         app.globalData.hasProfile = true
         wx.setStorageSync('hasProfile', true)
@@ -309,10 +344,8 @@ Page({
         wx.showToast({ title: '提交成功！', icon: 'success', duration: 2000 })
 
         var serialNumber = result.data?.serial_number || ''
-        var profileId = result.data?.profile_id || ''
 
         setTimeout(function() {
-          // 提交成功后的提示
           wx.showModal({
             title: '提交成功',
             content: '您的编号为 ' + serialNumber + '，资料已进入审核流程，请耐心等待。',
@@ -329,8 +362,6 @@ Page({
     } catch (err: any) {
       wx.hideLoading()
       console.error('[Profile] 提交失败:', err)
-
-      // 针对常见错误给出友好提示
       var errMsg = err.message || '提交失败，请重试'
       if (errMsg.indexOf('已经提交过') >= 0) {
         wx.showModal({
@@ -351,29 +382,22 @@ Page({
   // =========================================
 
   onLoad(options: any) {
-    // 检查登录态
     var openid = wx.getStorageSync('openid')
     if (!openid) {
       wx.redirectTo({ url: '/pages/index/index' })
       return
     }
-
-    // 如果带了 mode=view 参数，可以加载已有资料
     if (options && options.mode === 'view') {
       this._loadExistingProfile()
     }
   },
 
-  /** 加载已有资料（编辑/查看场景） */
-  async _loadExistingProfile() {
-    try {
-      wx.showLoading({ title: '加载中...' })
-      var result = await getMyProfile()
+  _loadExistingProfile() {
+    wx.showLoading({ title: '加载中...' })
+    getMyProfile().then(function(result: any) {
       wx.hideLoading()
-
       if (result.success && result.data) {
         var profile = result.data
-        // 如果资料状态不允许编辑，给出提示
         if (profile.status === 'approved' || profile.status === 'published') {
           wx.showModal({
             title: '提示',
@@ -387,16 +411,14 @@ Page({
             showCancel: false,
           })
         }
-        // TODO: 如果需要编辑功能，在这里回填表单数据
       }
-    } catch (err: any) {
+    }).catch(function(err: any) {
       wx.hideLoading()
-      // 404 = 没有资料，正常情况
       if (err.message && err.message.indexOf('不存在') >= 0) {
         console.log('[Profile] 用户尚未提交资料')
       } else {
         console.error('[Profile] 加载资料失败:', err)
       }
-    }
+    })
   },
 })

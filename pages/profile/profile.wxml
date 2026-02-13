@@ -13,7 +13,7 @@
     <view class="step-line {{currentStep >= 2 ? 'done' : ''}}"></view>
     <view class="step {{currentStep >= 2 ? 'active' : ''}} {{currentStep === 2 ? 'current' : ''}}" bindtap="goStep" data-s="2">
       <view class="step-dot">3</view>
-      <text class="step-text">期待/照片</text>
+      <text class="step-text">偏好/照片</text>
     </view>
     <view class="step-line {{currentStep >= 3 ? 'done' : ''}}"></view>
     <view class="step {{currentStep >= 3 ? 'active' : ''}} {{currentStep === 3 ? 'current' : ''}}" bindtap="goStep" data-s="3">
@@ -86,10 +86,10 @@
     </view>
 
     <view class="card">
-      <text class="card-title">交友信息</text>
+      <text class="card-title">个人偏好</text>
 
       <view class="field">
-        <text class="label">交友目的</text>
+        <text class="label">期望方向</text>
         <view class="tags">
           <text wx:for="{{datingPurposeOptions}}" wx:key="*this"
             class="tag {{datingPurpose === item ? 'active' : ''}}"
@@ -98,7 +98,7 @@
       </view>
 
       <view class="field">
-        <text class="label">是否需要孩子</text>
+        <text class="label">生活规划</text>
         <view class="tags">
           <text wx:for="{{wantChildrenOptions}}" wx:key="*this"
             class="tag {{wantChildren === item ? 'active' : ''}}"
@@ -134,12 +134,7 @@
         </view>
       </view>
 
-      <view class="field">
-        <text class="label">出柜状态</text>
-        <picker range="{{comingOutOptions}}" bindchange="onPick" data-key="comingOutStatus">
-          <view class="input picker">{{comingOutStatus || '选填'}} <text class="arrow">▾</text></view>
-        </picker>
-      </view>
+      <!-- 出柜状态已移除 -->
 
       <view class="field">
         <text class="label">健康状况</text>
@@ -179,21 +174,21 @@
     </view>
   </view>
 
-  <!-- ===== 步骤2: 期待对象 + 照片 ===== -->
+  <!-- ===== 步骤2: 期望匹配 + 照片 ===== -->
   <view wx:if="{{currentStep === 2}}">
     <view class="card">
-      <text class="card-title">期待对象</text>
+      <text class="card-title">期望匹配</text>
       <view class="field">
-        <text class="label">交友目的</text>
-        <input class="input" type="text" placeholder="例：找长期伴侣" value="{{expRelationship}}" bindinput="onInput" data-key="expRelationship" />
+        <text class="label">期望方向</text>
+        <input class="input" type="text" placeholder="例：希望找到志同道合的人" value="{{expRelationship}}" bindinput="onInput" data-key="expRelationship" />
       </view>
       <view class="field">
-        <text class="label">期待体型</text>
+        <text class="label">期望体型</text>
         <input class="input" type="text" placeholder="例：匀称/偏壮" value="{{expBodyType}}" bindinput="onInput" data-key="expBodyType" />
       </view>
       <view class="field">
         <text class="label">外貌偏好</text>
-        <input class="input" type="text" placeholder="例：短发/干净清爽" value="{{expAppearance}}" bindinput="onInput" data-key="expAppearance" />
+        <input class="input" type="text" placeholder="例：干净清爽" value="{{expAppearance}}" bindinput="onInput" data-key="expAppearance" />
       </view>
       <view class="field">
         <text class="label">可接受年龄</text>
@@ -219,14 +214,19 @@
 
     <view class="card">
       <text class="card-title">照片上传 <text class="sub">(最多6张)</text></text>
-      <text class="tip">清晰的照片可以大大提升匹配机会～</text>
+
+      <!-- 隐私提醒 -->
+      <view class="privacy-notice">
+        <text class="privacy-notice-text">🔒 隐私提醒：您上传的照片仅用于资料审核，未经您同意不会公开展示。请勿上传包含身份证、银行卡等敏感信息的照片。</text>
+      </view>
+
+      <text class="tip">请上传清晰的个人照片</text>
       <!-- 上传中提示 -->
-      <text class="tip" wx:if="{{uploadingPhoto}}" style="color: #E8457C;">📤 照片上传中...</text>
+      <text class="tip" wx:if="{{uploadingPhoto}}" style="color: #4A90D9;">照片上传中...</text>
       <view class="photo-grid">
         <view class="photo-item" wx:for="{{photos}}" wx:key="*this">
           <image class="photo-img" src="{{item}}" mode="aspectFill" data-url="{{item}}" bindtap="previewPhoto" />
           <view class="photo-del" data-i="{{index}}" catchtap="removePhoto">✕</view>
-          <!-- 上传状态指示 -->
           <view class="photo-status" wx:if="{{!uploadedPhotos[index]}}">
             <text class="photo-status-text">上传中</text>
           </view>
@@ -262,14 +262,13 @@
       <view class="pv-row" wx:if="{{hometown}}"><text class="pv-l">籍贯</text><text class="pv-r">{{hometown}}</text></view>
       <view class="pv-row" wx:if="{{workLocation}}"><text class="pv-l">工作地</text><text class="pv-r">{{workLocation}}</text></view>
       <view class="pv-row" wx:if="{{industry}}"><text class="pv-l">行业</text><text class="pv-r">{{industry}}</text></view>
-      <view class="pv-row" wx:if="{{datingPurpose}}"><text class="pv-l">交友目的</text><text class="pv-r">{{datingPurpose}}</text></view>
-      <view class="pv-row" wx:if="{{wantChildren}}"><text class="pv-l">孩子意愿</text><text class="pv-r">{{wantChildren}}</text></view>
+      <view class="pv-row" wx:if="{{datingPurpose}}"><text class="pv-l">期望方向</text><text class="pv-r">{{datingPurpose}}</text></view>
+      <view class="pv-row" wx:if="{{wantChildren}}"><text class="pv-l">生活规划</text><text class="pv-r">{{wantChildren}}</text></view>
       <view class="pv-row" wx:if="{{wechatId}}"><text class="pv-l">微信号</text><text class="pv-r">{{wechatId}}</text></view>
 
-      <text class="section-label" wx:if="{{constellation || mbti || comingOutStatus}}">个人特征</text>
+      <text class="section-label" wx:if="{{constellation || mbti}}">个人特征</text>
       <view class="pv-row" wx:if="{{constellation}}"><text class="pv-l">星座</text><text class="pv-r">{{constellation}}</text></view>
       <view class="pv-row" wx:if="{{mbti}}"><text class="pv-l">MBTI</text><text class="pv-r">{{mbti}}</text></view>
-      <view class="pv-row" wx:if="{{comingOutStatus}}"><text class="pv-l">出柜状态</text><text class="pv-r">{{comingOutStatus}}</text></view>
       <view class="pv-row" wx:if="{{healthCondition}}"><text class="pv-l">健康状况</text><text class="pv-r">{{healthCondition}}</text></view>
 
       <text class="section-label" wx:if="{{selectedHobbies.length > 0}}">兴趣爱好</text>
@@ -279,9 +278,9 @@
 
       <view class="pv-row" wx:if="{{lifestyle}}"><text class="pv-l">自我描述</text><text class="pv-r pv-long">{{lifestyle}}</text></view>
 
-      <text class="section-label" wx:if="{{expRelationship || expBodyType || expAppearance || expAgeRange}}">期待对象</text>
-      <view class="pv-row" wx:if="{{expRelationship}}"><text class="pv-l">交友目的</text><text class="pv-r">{{expRelationship}}</text></view>
-      <view class="pv-row" wx:if="{{expBodyType}}"><text class="pv-l">期待体型</text><text class="pv-r">{{expBodyType}}</text></view>
+      <text class="section-label" wx:if="{{expRelationship || expBodyType || expAppearance || expAgeRange}}">期望匹配</text>
+      <view class="pv-row" wx:if="{{expRelationship}}"><text class="pv-l">期望方向</text><text class="pv-r">{{expRelationship}}</text></view>
+      <view class="pv-row" wx:if="{{expBodyType}}"><text class="pv-l">期望体型</text><text class="pv-r">{{expBodyType}}</text></view>
       <view class="pv-row" wx:if="{{expAppearance}}"><text class="pv-l">外貌偏好</text><text class="pv-r">{{expAppearance}}</text></view>
       <view class="pv-row" wx:if="{{expAgeRange}}"><text class="pv-l">可接受年龄</text><text class="pv-r">{{expAgeRange}}</text></view>
       <view class="pv-row" wx:if="{{expHabits}}"><text class="pv-l">生活习惯</text><text class="pv-r">{{expHabits}}</text></view>
@@ -296,7 +295,7 @@
     </view>
 
     <view class="confirm-tip">
-      <text>提交后资料将进入审核，审核通过后会发布到公众号。如需修改可返回上一步。</text>
+      <text>提交后资料将进入审核，请耐心等待。如需修改可返回上一步。</text>
     </view>
   </view>
 

@@ -1,7 +1,7 @@
 <view class="page">
   <!-- 自动登录检测中 -->
   <view class="auto-login-wrap" wx:if="{{autoLogging}}">
-    <text class="emoji" style="font-size:80rpx;">🌈</text>
+    <text class="emoji" style="font-size:80rpx;">📋</text>
     <text class="auto-login-text">正在登录...</text>
   </view>
 
@@ -9,9 +9,9 @@
   <view wx:else>
     <!-- 顶部 -->
     <view class="header">
-      <text class="emoji">🌈</text>
-      <text class="title">彩虹注册</text>
-      <text class="subtitle">遇见真实的你</text>
+      <text class="emoji">📋</text>
+      <text class="title">信息登记</text>
+      <text class="subtitle">记录真实的你</text>
     </view>
 
     <!-- 输入区 -->
@@ -29,18 +29,24 @@
         class="btn-main"
         bindtap="onSubmit"
         disabled="{{loading || code.length < 6}}"
-      >{{loading ? '验证中...' : '开始注册'}}</button>
+      >{{loading ? '验证中...' : '开始登记'}}</button>
     </view>
 
     <!-- 提示 -->
     <view class="tips">
-      <text>如何获取邀请码？\n• 通过已注册用户邀请\n• 关注公众号参与活动</text>
+      <text>如何获取邀请码？\n• 通过已登记用户分享\n• 关注公众号获取</text>
     </view>
 
     <!-- 已注册用户直接登录 -->
-    <button class="btn-relogin" bindtap="onRelogin" disabled="{{loading}}">已注册？直接登录</button>
+    <button class="btn-relogin" bindtap="onRelogin" disabled="{{loading}}">已登记？直接登录</button>
 
-    <!-- 开发按钮 -->
+    <!-- 隐私协议入口 -->
+    <view class="privacy-link">
+      <text class="privacy-text" bindtap="goPrivacy">登记即表示同意</text>
+      <text class="privacy-link-text" bindtap="goPrivacy">《用户隐私保护指引》</text>
+    </view>
+
+    <!-- 开发按钮（上线前删除或设 devMode: false） -->
     <button class="btn-dev" wx:if="{{devMode}}" bindtap="onDevSkip">开发模式：跳过验证</button>
   </view>
 </view>

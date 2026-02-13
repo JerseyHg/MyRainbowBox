@@ -3,10 +3,11 @@
     "pages/index/index",
     "pages/profile/profile",
     "pages/status/status",
-    "pages/codes/codes"
+    "pages/codes/codes",
+    "pages/privacy/privacy"
   ],
   "window": {
-    "navigationBarTitleText": "彩虹注册",
+    "navigationBarTitleText": "信息登记",
     "navigationBarBackgroundColor": "#ffffff",
     "enablePullDownRefresh": false
   }
