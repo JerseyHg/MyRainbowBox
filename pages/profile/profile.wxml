@@ -116,6 +116,12 @@
       <view class="tags">
         <text wx:for="{{hobbyTags}}" wx:key="*this" class="tag {{selectedHobbies.indexOf(item) >= 0 ? 'active' : ''}}" data-val="{{item}}" bindtap="toggleHobby">{{item}}</text>
       </view>
+
+      <!-- ★ 自定义兴趣输入 -->
+      <view class="hobby-add-row" style="margin-top: 20rpx;">
+        <input class="input hobby-input" type="text" placeholder="输入自定义兴趣..." value="{{customHobby}}" bindinput="onInput" data-key="customHobby" maxlength="10" />
+        <button class="hobby-add-btn" bindtap="addCustomHobby">添加</button>
+      </view>
     </view>
 
     <view class="card">

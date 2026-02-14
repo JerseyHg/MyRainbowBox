@@ -20,10 +20,8 @@ Page({
     lifestyle: '',
     activityExpectation: '',
     specialRequirements: '',
-    // ★ photos: 用于界面显示（本地临时路径 或 COS完整URL）
-    // ★ uploadedPhotos: 服务器上的URL（用于提交和删除），与photos一一对应
-    //    - 新选的照片：上传完成前为null，完成后为COS URL
-    //    - 编辑模式加载的：直接就是COS URL
+    // ★ photos: 用于界面显示（本地临时路径 或 编辑模式下的COS URL）
+    // ★ uploadedPhotos: 已上传的COS URL（用于提交），与photos一一对应
     photos: [],
     uploadedPhotos: [],
     uploadingPhoto: false,
@@ -188,7 +186,7 @@ Page({
     var newUploaded = that.data.uploadedPhotos.slice()
 
     for (var i = 0; i < filePaths.length; i++) {
-      newPhotos.push(filePaths[i])     // 本地临时路径，用于即时显示
+      newPhotos.push(filePaths[i])     // ★ 本地临时路径，用于界面显示
       newUploaded.push(null)            // 还未上传完成
     }
 
@@ -203,13 +201,12 @@ Page({
       (function (path, idx) {
         api.uploadPhoto(path).then(function (url) {
           console.log('[upload] ✅ 第', idx, '张成功:', url)
-          var photos = that.data.photos.slice()
-          var up = that.data.uploadedPhotos.slice()
 
-          // ★ 上传成功后，把显示用的本地路径替换为COS URL
-          photos[idx] = url
+          // ★ 关键：只更新 uploadedPhotos，不动 photos！
+          // photos 保留本地临时路径用于显示，uploadedPhotos 存COS URL用于提交
+          var up = that.data.uploadedPhotos.slice()
           up[idx] = url
-          that.setData({ photos: photos, uploadedPhotos: up })
+          that.setData({ uploadedPhotos: up })
 
           // 检查是否全部完成
           var allDone = true
@@ -243,13 +240,13 @@ Page({
     }
   },
 
-  // ★ 点击 ✕ 删除照片：从COS删除 + 从本地数组移除
+  // ★ 点击 ✕ 删除照片
   removePhoto: function (e) {
     var that = this
     var i = e.currentTarget.dataset.i
     var serverUrl = that.data.uploadedPhotos[i]
 
-    // 先从界面移除（不等服务器响应，提升体验）
+    // 先从界面移除
     var photos = that.data.photos.slice(); photos.splice(i, 1)
     var uploaded = that.data.uploadedPhotos.slice(); uploaded.splice(i, 1)
     that.setData({ photos: photos, uploadedPhotos: uploaded })
@@ -449,7 +446,9 @@ Page({
       wx.hideLoading()
       if (result.success && result.data) {
         var p = result.data
-        // ★ COS URL是完整的https URL，可以直接在小程序中显示
+        // ★ 编辑模式：服务器返回的COS URL是完整URL
+        // photos 和 uploadedPhotos 都设为COS URL
+        // COS URL在加了域名白名单后可以直接显示
         var serverPhotos = p.photos || []
 
         that.setData({
@@ -470,8 +469,8 @@ Page({
           lifestyle: p.lifestyle || '',
           activityExpectation: p.activity_expectation || '',
           specialRequirements: p.special_requirements || '',
-          photos: serverPhotos,           // ★ COS完整URL，直接显示
-          uploadedPhotos: serverPhotos,    // ★ 同样的URL，用于提交
+          photos: serverPhotos,
+          uploadedPhotos: serverPhotos,
         })
       }
     }).catch(function (err) {
