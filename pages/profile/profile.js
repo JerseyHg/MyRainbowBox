@@ -20,6 +20,10 @@ Page({
     lifestyle: '',
     activityExpectation: '',
     specialRequirements: '',
+    // ★ photos: 用于界面显示（本地临时路径 或 COS完整URL）
+    // ★ uploadedPhotos: 服务器上的URL（用于提交和删除），与photos一一对应
+    //    - 新选的照片：上传完成前为null，完成后为COS URL
+    //    - 编辑模式加载的：直接就是COS URL
     photos: [],
     uploadedPhotos: [],
     uploadingPhoto: false,
@@ -49,7 +53,6 @@ Page({
     }
   },
 
-  // ★ 生日选择后自动计算年龄和星座
   onBirthdayChange: function (e) {
     var birthday = e.detail.value
     var parts = birthday.split('-')
@@ -104,40 +107,26 @@ Page({
 
   // ===== 照片上传 =====
   choosePhoto: function () {
-    console.log('========================================')
-    console.log('[choosePhoto] ✅ 函数被调用了')
-    console.log('[choosePhoto] uploadingPhoto =', this.data.uploadingPhoto)
-    console.log('[choosePhoto] _photoPrivacyAgreed =', this.data._photoPrivacyAgreed)
-    console.log('[choosePhoto] photos.length =', this.data.photos.length)
-    console.log('========================================')
-
     var that = this
 
-    // 防止上传中重复点击
     if (that.data.uploadingPhoto) {
       wx.showToast({ title: '照片上传中，请稍候', icon: 'none' })
       return
     }
 
     if (!that.data._photoPrivacyAgreed) {
-      console.log('[choosePhoto] 准备弹出隐私提醒 Modal...')
       wx.showModal({
         title: '隐私提醒',
         content: '您上传的照片仅用于报名审核，未经您同意不会公开展示。是否继续？',
         confirmText: '同意上传',
         success: function (res) {
-          console.log('[choosePhoto] Modal 用户选择:', res)
           if (res.confirm) {
             that.setData({ _photoPrivacyAgreed: true })
             that._doChoosePhoto()
           }
-        },
-        fail: function (err) {
-          console.error('[choosePhoto] ❌ Modal 弹出失败:', err)
         }
       })
     } else {
-      console.log('[choosePhoto] 已同意隐私，直接选照片')
       that._doChoosePhoto()
     }
   },
@@ -149,18 +138,14 @@ Page({
       wx.showToast({ title: '最多上传6张', icon: 'none' })
       return
     }
-    console.log('[_doChoosePhoto] 剩余可选:', remaining)
 
-    // ★ 优先使用 wx.chooseMedia，如果失败则回退到 wx.chooseImage
     if (wx.chooseMedia) {
-      console.log('[_doChoosePhoto] 尝试 wx.chooseMedia...')
       wx.chooseMedia({
         count: remaining,
         mediaType: ['image'],
         sourceType: ['album', 'camera'],
         sizeType: ['compressed'],
         success: function (res) {
-          console.log('[chooseMedia] ✅ 成功, 文件数:', res.tempFiles.length)
           var filePaths = []
           for (var i = 0; i < res.tempFiles.length; i++) {
             filePaths.push(res.tempFiles[i].tempFilePath)
@@ -168,36 +153,25 @@ Page({
           that._handleChosenPhotos(filePaths)
         },
         fail: function (err) {
-          console.warn('[chooseMedia] ❌ 失败:', err.errMsg || err)
-          // 如果不是用户取消，尝试回退
-          if (err.errMsg && err.errMsg.indexOf('cancel') >= 0) {
-            console.log('[chooseMedia] 用户取消选择')
-          } else {
-            console.log('[chooseMedia] 回退到 wx.chooseImage')
-            that._fallbackChooseImage(remaining)
-          }
+          if (err.errMsg && err.errMsg.indexOf('cancel') >= 0) return
+          that._fallbackChooseImage(remaining)
         }
       })
     } else {
-      console.log('[_doChoosePhoto] wx.chooseMedia 不存在，使用 wx.chooseImage')
       that._fallbackChooseImage(remaining)
     }
   },
 
-  // wx.chooseImage 回退方案（兼容性更好）
   _fallbackChooseImage: function (remaining) {
     var that = this
-    console.log('[_fallbackChooseImage] 使用 wx.chooseImage, count:', remaining)
     wx.chooseImage({
       count: remaining,
       sourceType: ['album', 'camera'],
       sizeType: ['compressed'],
       success: function (res) {
-        console.log('[chooseImage] ✅ 成功, 文件数:', res.tempFilePaths.length)
         that._handleChosenPhotos(res.tempFilePaths)
       },
       fail: function (err) {
-        console.error('[chooseImage] ❌ 失败:', err.errMsg || err)
         if (err.errMsg && err.errMsg.indexOf('cancel') === -1) {
           wx.showToast({ title: '无法选择照片', icon: 'none' })
         }
@@ -205,19 +179,17 @@ Page({
     })
   },
 
-  // 处理选好的照片（统一入口）
+  // ★ 选好照片后立即上传到COS
   _handleChosenPhotos: function (filePaths) {
     var that = this
     if (!filePaths || filePaths.length === 0) return
-
-    console.log('[_handleChosenPhotos] 处理', filePaths.length, '张照片')
 
     var newPhotos = that.data.photos.slice()
     var newUploaded = that.data.uploadedPhotos.slice()
 
     for (var i = 0; i < filePaths.length; i++) {
-      newPhotos.push(filePaths[i])
-      newUploaded.push(null)
+      newPhotos.push(filePaths[i])     // 本地临时路径，用于即时显示
+      newUploaded.push(null)            // 还未上传完成
     }
 
     that.setData({
@@ -226,16 +198,20 @@ Page({
       uploadingPhoto: true
     })
 
-    // 逐个上传到服务器
+    // 逐个上传到COS
     for (var j = 0; j < filePaths.length; j++) {
       (function (path, idx) {
-        console.log('[upload] 开始上传第', idx, '张')
         api.uploadPhoto(path).then(function (url) {
           console.log('[upload] ✅ 第', idx, '张成功:', url)
+          var photos = that.data.photos.slice()
           var up = that.data.uploadedPhotos.slice()
-          up[idx] = url
-          that.setData({ uploadedPhotos: up })
 
+          // ★ 上传成功后，把显示用的本地路径替换为COS URL
+          photos[idx] = url
+          up[idx] = url
+          that.setData({ photos: photos, uploadedPhotos: up })
+
+          // 检查是否全部完成
           var allDone = true
           for (var k = 0; k < up.length; k++) {
             if (up[k] === null) { allDone = false; break }
@@ -248,18 +224,16 @@ Page({
           console.error('[upload] ❌ 第', idx, '张失败:', err)
           wx.showToast({ title: '照片上传失败', icon: 'none' })
 
+          // 移除失败的照片
           var p = that.data.photos.slice()
           var u = that.data.uploadedPhotos.slice()
           p.splice(idx, 1)
           u.splice(idx, 1)
           that.setData({ photos: p, uploadedPhotos: u })
 
-          var allDone2 = u.length === 0
-          if (!allDone2) {
-            allDone2 = true
-            for (var k = 0; k < u.length; k++) {
-              if (u[k] === null) { allDone2 = false; break }
-            }
+          var allDone2 = true
+          for (var k = 0; k < u.length; k++) {
+            if (u[k] === null) { allDone2 = false; break }
           }
           if (allDone2) {
             that.setData({ uploadingPhoto: false })
@@ -269,12 +243,27 @@ Page({
     }
   },
 
+  // ★ 点击 ✕ 删除照片：从COS删除 + 从本地数组移除
   removePhoto: function (e) {
+    var that = this
     var i = e.currentTarget.dataset.i
-    var photos = this.data.photos.slice(); photos.splice(i, 1)
-    var uploaded = this.data.uploadedPhotos.slice(); uploaded.splice(i, 1)
-    this.setData({ photos: photos, uploadedPhotos: uploaded })
+    var serverUrl = that.data.uploadedPhotos[i]
 
+    // 先从界面移除（不等服务器响应，提升体验）
+    var photos = that.data.photos.slice(); photos.splice(i, 1)
+    var uploaded = that.data.uploadedPhotos.slice(); uploaded.splice(i, 1)
+    that.setData({ photos: photos, uploadedPhotos: uploaded })
+
+    // 如果有COS URL，后台静默删除
+    if (serverUrl) {
+      api.deletePhoto(serverUrl).then(function () {
+        console.log('[removePhoto] ✅ COS删除成功')
+      }).catch(function (err) {
+        console.warn('[removePhoto] ⚠️ COS删除失败（不影响操作）:', err)
+      })
+    }
+
+    // 更新上传状态
     var allDone = uploaded.length === 0
     if (!allDone) {
       allDone = true
@@ -283,7 +272,7 @@ Page({
       }
     }
     if (allDone) {
-      this.setData({ uploadingPhoto: false })
+      that.setData({ uploadingPhoto: false })
     }
   },
 
@@ -358,7 +347,7 @@ Page({
 
     var d = that.data
 
-    // ★ 修复：过滤出已成功上传的照片URL（非null的才是有效的）
+    // ★ 只提交已成功上传的COS URL
     var validPhotos = []
     for (var i = 0; i < d.uploadedPhotos.length; i++) {
       if (d.uploadedPhotos[i]) {
@@ -460,6 +449,9 @@ Page({
       wx.hideLoading()
       if (result.success && result.data) {
         var p = result.data
+        // ★ COS URL是完整的https URL，可以直接在小程序中显示
+        var serverPhotos = p.photos || []
+
         that.setData({
           name: p.name || '',
           gender: p.gender || '',
@@ -478,8 +470,8 @@ Page({
           lifestyle: p.lifestyle || '',
           activityExpectation: p.activity_expectation || '',
           specialRequirements: p.special_requirements || '',
-          photos: p.photos || [],
-          uploadedPhotos: p.photos || [],
+          photos: serverPhotos,           // ★ COS完整URL，直接显示
+          uploadedPhotos: serverPhotos,    // ★ 同样的URL，用于提交
         })
       }
     }).catch(function (err) {

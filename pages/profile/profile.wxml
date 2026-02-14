@@ -64,50 +64,47 @@
           <text wx:for="{{bodyTypeOptions}}" wx:key="*this" class="tag {{bodyType === item ? 'active' : ''}}" data-key="bodyType" data-val="{{item}}" bindtap="onTagTap">{{item}}</text>
         </view>
       </view>
-    </view>
 
-    <view class="card">
-      <text class="card-title">地域与工作</text>
       <view class="field">
         <text class="label">籍贯</text>
-        <input class="input" type="text" placeholder="例：北京" value="{{hometown}}" bindinput="onInput" data-key="hometown" />
+        <input class="input" type="text" placeholder="如：广东广州" value="{{hometown}}" bindinput="onInput" data-key="hometown" maxlength="20" />
       </view>
+
       <view class="field">
         <text class="label">工作地</text>
-        <input class="input" type="text" placeholder="例：上海 浦东" value="{{workLocation}}" bindinput="onInput" data-key="workLocation" />
+        <input class="input" type="text" placeholder="如：上海" value="{{workLocation}}" bindinput="onInput" data-key="workLocation" maxlength="20" />
       </view>
+
       <view class="field">
         <text class="label">行业</text>
-        <input class="input" type="text" placeholder="例：互联网" value="{{industry}}" bindinput="onInput" data-key="industry" />
+        <input class="input" type="text" placeholder="如：互联网" value="{{industry}}" bindinput="onInput" data-key="industry" maxlength="20" />
       </view>
-    </view>
 
-    <view class="card">
-      <text class="card-title">联系方式</text>
       <view class="field" style="margin-bottom:0;">
-        <text class="label">联系方式</text>
-        <input class="input" type="text" placeholder="用于报名通过后联系您"
-          value="{{wechatId}}" bindinput="onInput" data-key="wechatId" />
+        <text class="label">微信号（联系方式）</text>
+        <input class="input" type="text" placeholder="请输入您的微信号" value="{{wechatId}}" bindinput="onInput" data-key="wechatId" maxlength="30" />
       </view>
     </view>
   </view>
 
-  <!-- ===== 步骤1: 关于我 + 照片 ===== -->
+  <!-- ===== 步骤1: 关于我 ===== -->
   <view wx:if="{{currentStep === 1}}">
     <view class="card">
-      <text class="card-title">兴趣与个性</text>
+      <text class="card-title">关于我</text>
 
       <view class="field">
         <text class="label">MBTI</text>
-        <picker range="{{mbtiOptions}}" bindchange="onPick" data-key="mbti">
-          <view class="input picker">{{mbti || '选填'}} <text class="arrow">▾</text></view>
+        <picker bindchange="onPick" data-key="mbti" range="{{mbtiOptions}}" value="0">
+          <view class="input picker">
+            {{mbti || '请选择MBTI类型'}}
+            <text class="arrow">▾</text>
+          </view>
         </picker>
       </view>
+    </view>
 
-      <view class="field">
-        <text class="label">兴趣爱好</text>
-        <text class="tip">选择标签或自己添加，最多10个</text>
-      </view>
+    <view class="card">
+      <text class="card-title">兴趣爱好 <text class="sub">(最多10个)</text></text>
 
       <view class="selected-hobbies" wx:if="{{selectedHobbies.length > 0}}">
         <view class="selected-tag" wx:for="{{selectedHobbies}}" wx:key="*this">
@@ -116,12 +113,7 @@
         </view>
       </view>
 
-      <view class="hobby-add-row">
-        <input class="input hobby-input" type="text" placeholder="输入自定义兴趣..." value="{{customHobby}}" bindinput="onInput" data-key="customHobby" maxlength="10" />
-        <button class="hobby-add-btn" bindtap="addCustomHobby">添加</button>
-      </view>
-
-      <view class="tags" style="margin-top: 20rpx;">
+      <view class="tags">
         <text wx:for="{{hobbyTags}}" wx:key="*this" class="tag {{selectedHobbies.indexOf(item) >= 0 ? 'active' : ''}}" data-val="{{item}}" bindtap="toggleHobby">{{item}}</text>
       </view>
     </view>
@@ -196,9 +188,18 @@
         <text class="pv-hobby-tag" wx:for="{{selectedHobbies}}" wx:key="*this">{{item}}</text>
       </view>
 
-      <view class="pv-row" wx:if="{{lifestyle}}"><text class="pv-l">自我描述</text><text class="pv-r pv-long">{{lifestyle}}</text></view>
-      <view class="pv-row" wx:if="{{activityExpectation}}"><text class="pv-l">对活动的期望</text><text class="pv-r pv-long">{{activityExpectation}}</text></view>
+      <!-- ★ 上下排布 -->
+      <view class="pv-block" wx:if="{{lifestyle}}">
+        <text class="pv-block-label">自我描述</text>
+        <text class="pv-block-content">{{lifestyle}}</text>
+      </view>
 
+      <view class="pv-block" wx:if="{{activityExpectation}}">
+        <text class="pv-block-label">对活动的期望</text>
+        <text class="pv-block-content">{{activityExpectation}}</text>
+      </view>
+
+      <!-- ★ 照片：直接用 photos 数组（COS URL是完整URL，本地是临时路径，都能显示） -->
       <text class="section-label">照片</text>
       <view class="pv-photos" wx:if="{{photos.length > 0}}">
         <image class="pv-photo" wx:for="{{photos}}" wx:key="*this" src="{{item}}" mode="aspectFill" />

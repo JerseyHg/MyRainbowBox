@@ -151,7 +151,7 @@ function archiveProfile() {
   })
 }
 
-/** 删除资料（仅 pending/rejected 状态） */
+/** 删除资料 */
 function deleteProfile() {
   if (isMockMode()) {
     return mock.deleteProfile()
@@ -202,9 +202,24 @@ function uploadPhoto(filePath) {
   })
 }
 
+/** ★ 删除单张照片（从COS删除） */
+function deletePhoto(photoUrl) {
+  if (isMockMode()) {
+    return new Promise(function (resolve) {
+      setTimeout(function () { resolve({ success: true }) }, 100)
+    })
+  }
+  return request({
+    url: '/upload/photo',
+    method: 'DELETE',
+    data: { url: photoUrl },
+  })
+}
+
 // ===== 导出 =====
 
 module.exports = {
+  getBaseUrl: getBaseUrl,
   autoLogin: autoLogin,
   verifyInvitation: verifyInvitation,
   getMyCodes: getMyCodes,
@@ -214,4 +229,5 @@ module.exports = {
   archiveProfile: archiveProfile,
   deleteProfile: deleteProfile,
   uploadPhoto: uploadPhoto,
+  deletePhoto: deletePhoto,
 }
