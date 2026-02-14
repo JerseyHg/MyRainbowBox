@@ -97,22 +97,14 @@
     <view class="card">
       <text class="card-title">个人特征</text>
 
-      <view class="row">
-        <view class="field col">
-          <text class="label">星座</text>
-          <view class="input" style="color: {{constellation ? '#333' : '#999'}};">
-            {{constellation || '填写生日后自动计算'}}
-          </view>
-        </view>
-        <view class="field col">
-          <text class="label">MBTI</text>
-          <picker range="{{mbtiOptions}}" bindchange="onPick" data-key="mbti">
-            <view class="input picker">{{mbti || '选填'}} <text class="arrow">▾</text></view>
-          </picker>
-        </view>
+      <view class="field">
+        <text class="label">MBTI</text>
+        <picker range="{{mbtiOptions}}" bindchange="onPick" data-key="mbti">
+          <view class="input picker">{{mbti || '选填'}} <text class="arrow">▾</text></view>
+        </picker>
       </view>
 
-      <view class="field">
+      <view class="field" style="margin-bottom:0;">
         <text class="label">健康状况</text>
         <input class="input" type="text" placeholder="如无特殊可不填" value="{{healthCondition}}" bindinput="onInput" data-key="healthCondition" />
       </view>
@@ -160,7 +152,7 @@
       <text class="tip">请上传清晰的个人照片</text>
       <text class="tip" wx:if="{{uploadingPhoto}}" style="color: #4A90D9;">照片上传中...</text>
       <view class="photo-grid">
-        <view class="photo-item" wx:for="{{photos}}" wx:key="*this">
+        <view class="photo-item" wx:for="{{photos}}" wx:key="index">
           <image class="photo-img" src="{{item}}" mode="aspectFill" data-url="{{item}}" bindtap="previewPhoto" />
           <view class="photo-del" data-i="{{index}}" catchtap="removePhoto">✕</view>
           <view class="photo-status" wx:if="{{!uploadedPhotos[index]}}">
@@ -169,7 +161,7 @@
         </view>
         <view class="photo-add" bindtap="choosePhoto" wx:if="{{photos.length < 6}}">
           <text class="add-icon">+</text>
-          <text class="add-text">添加</text>
+          <text class="add-text">添加照片</text>
         </view>
       </view>
     </view>
