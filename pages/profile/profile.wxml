@@ -8,7 +8,7 @@
     <view class="step-line {{currentStep >= 1 ? 'done' : ''}}"></view>
     <view class="step {{currentStep >= 1 ? 'active' : ''}} {{currentStep === 1 ? 'current' : ''}}" bindtap="goStep" data-s="1">
       <view class="step-dot">2</view>
-      <text class="step-text">个人特征</text>
+      <text class="step-text">关于我</text>
     </view>
     <view class="step-line {{currentStep >= 2 ? 'done' : ''}}"></view>
     <view class="step {{currentStep >= 2 ? 'active' : ''}} {{currentStep === 2 ? 'current' : ''}}" bindtap="goStep" data-s="2">
@@ -92,10 +92,10 @@
     </view>
   </view>
 
-  <!-- ===== 步骤1: 个人特征 + 照片 ===== -->
+  <!-- ===== 步骤1: 关于我 + 照片 ===== -->
   <view wx:if="{{currentStep === 1}}">
     <view class="card">
-      <text class="card-title">个人特征</text>
+      <text class="card-title">兴趣与个性</text>
 
       <view class="field">
         <text class="label">MBTI</text>
@@ -104,15 +104,10 @@
         </picker>
       </view>
 
-      <view class="field" style="margin-bottom:0;">
-        <text class="label">健康状况</text>
-        <input class="input" type="text" placeholder="如无特殊可不填" value="{{healthCondition}}" bindinput="onInput" data-key="healthCondition" />
+      <view class="field">
+        <text class="label">兴趣爱好</text>
+        <text class="tip">选择标签或自己添加，最多10个</text>
       </view>
-    </view>
-
-    <view class="card">
-      <text class="card-title">兴趣爱好与生活方式</text>
-      <text class="tip">选择标签或自己添加，最多10个</text>
 
       <view class="selected-hobbies" wx:if="{{selectedHobbies.length > 0}}">
         <view class="selected-tag" wx:for="{{selectedHobbies}}" wx:key="*this">
@@ -192,10 +187,9 @@
       <view class="pv-row" wx:if="{{industry}}"><text class="pv-l">行业</text><text class="pv-r">{{industry}}</text></view>
       <view class="pv-row" wx:if="{{wechatId}}"><text class="pv-l">联系方式</text><text class="pv-r">{{wechatId}}</text></view>
 
-      <text class="section-label" wx:if="{{constellation || mbti}}">个人特征</text>
+      <text class="section-label" wx:if="{{constellation || mbti}}">关于我</text>
       <view class="pv-row" wx:if="{{constellation}}"><text class="pv-l">星座</text><text class="pv-r">{{constellation}}</text></view>
       <view class="pv-row" wx:if="{{mbti}}"><text class="pv-l">MBTI</text><text class="pv-r">{{mbti}}</text></view>
-      <view class="pv-row" wx:if="{{healthCondition}}"><text class="pv-l">健康状况</text><text class="pv-r">{{healthCondition}}</text></view>
 
       <text class="section-label" wx:if="{{selectedHobbies.length > 0}}">兴趣爱好</text>
       <view class="pv-hobbies" wx:if="{{selectedHobbies.length > 0}}">
