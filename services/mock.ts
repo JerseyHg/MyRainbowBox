@@ -72,17 +72,18 @@ export async function submitProfile(data: any) {
   const openid = wx.getStorageSync('openid') || ''
   if (mockDB.profiles[openid]) throw new Error('您已经提交过资料，请使用更新接口')
   const serialNumber = String(Math.floor(Math.random() * 900) + 100)
-  const profile = {
-    id: Date.now(), serial_number: serialNumber, status: 'pending',
-    rejection_reason: '', create_time: _now(), published_at: null,
-    invitation_quota: 0,
+  const profile: any = {
+    id: Date.now(), serial_number: serialNumber, status: 'pending', rejection_reason: '',
+    create_time: _now(), published_at: null, invitation_quota: 0,
     name: data.name || '', gender: data.gender || '',
+    birthday: data.birthday || '',
     age: data.age || 0, height: data.height || 0, weight: data.weight || 0,
     body_type: data.body_type || '', hometown: data.hometown || '',
     work_location: data.work_location || '', industry: data.industry || '',
     wechat_id: data.wechat_id || '', constellation: data.constellation || '',
     mbti: data.mbti || '', health_condition: data.health_condition || '',
     hobbies: data.hobbies || [], lifestyle: data.lifestyle || '',
+    activity_expectation: data.activity_expectation || '',
     special_requirements: data.special_requirements || '',
     photos: data.photos || [],
   }
@@ -124,75 +125,22 @@ export async function deleteProfile() {
   const openid = wx.getStorageSync('openid') || ''
   const profile = mockDB.profiles[openid]
   if (!profile) throw new Error('资料不存在')
-  if (!['pending', 'rejected'].includes(profile.status)) {
-    throw new Error('当前状态不允许删除')
-  }
+  if (profile.status !== 'pending' && profile.status !== 'rejected') throw new Error('当前状态不允许删除')
   delete mockDB.profiles[openid]
-  delete mockDB.userCodes[openid]
   wx.removeStorageSync('mock_registered')
-  console.log('[Mock] 🗑️ 资料已删除')
-  return { success: true, message: '资料已删除' }
+  return { success: true, message: '已删除' }
 }
 
 export async function uploadPhoto(_filePath: string): Promise<string> {
-  await delay(600)
-  const mockUrl = '/uploads/photos/mock_' + Date.now() + '.jpg'
-  console.log('[Mock] 照片上传成功(模拟):', mockUrl)
+  await delay(1000)
+  const mockUrl = 'https://picsum.photos/400/400?random=' + Date.now()
+  console.log('[Mock] 照片上传成功:', mockUrl)
   return mockUrl
 }
 
-function _syncStorage(updates: Record<string, any>) {
-  const reg = wx.getStorageSync('mock_registered') || {}
-  Object.assign(reg, updates)
-  wx.setStorageSync('mock_registered', reg)
-}
-
-export function mockApprove() {
-  const openid = wx.getStorageSync('openid') || ''
-  const profile = mockDB.profiles[openid]
-  if (profile) {
-    profile.status = 'approved'; profile.invitation_quota = 2
-    mockDB.userCodes[openid] = [
-      { code: 'INV' + Math.random().toString(36).substring(2, 5).toUpperCase(), is_used: false, created_at: _now() },
-      { code: 'INV' + Math.random().toString(36).substring(2, 5).toUpperCase(), is_used: false, created_at: _now() },
-    ]
-    _syncStorage({ status: 'approved', invitation_quota: 2 })
-    console.log('[Mock] ✅ 已模拟审核通过')
-  }
-}
-
-export function mockReject(reason?: string) {
-  const openid = wx.getStorageSync('openid') || ''
-  const profile = mockDB.profiles[openid]
-  if (profile) {
-    profile.status = 'rejected'; profile.rejection_reason = reason || '资料不完整，请补充照片'
-    _syncStorage({ status: 'rejected', rejection_reason: profile.rejection_reason })
-    console.log('[Mock] ❌ 已模拟审核拒绝')
-  }
-}
-
-export function mockPublish() {
-  const openid = wx.getStorageSync('openid') || ''
-  const profile = mockDB.profiles[openid]
-  if (profile) {
-    profile.status = 'published'; profile.published_at = _now()
-    _syncStorage({ status: 'published', published_at: profile.published_at })
-    console.log('[Mock] 🎉 已模拟发布')
-  }
-}
-
-export function mockReset() {
-  const openid = wx.getStorageSync('openid') || ''
-  delete mockDB.profiles[openid]; delete mockDB.userCodes[openid]
-  mockDB.usedCodes.length = 0
-  wx.removeStorageSync('mock_registered')
-  console.log('[Mock] 🔄 已重置所有模拟数据')
-}
-
+// ===== 辅助函数 =====
 function _now(): string {
   const d = new Date()
   const pad = (n: number) => n < 10 ? '0' + n : '' + n
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
 }
-
-export { mockDB }

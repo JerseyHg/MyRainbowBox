@@ -60,6 +60,7 @@ function checkBeforeSubmit(profileData) {
   var fieldsToCheck = [
     profileData.name,
     profileData.lifestyle,
+    profileData.activity_expectation,
     profileData.special_requirements,
     profileData.health_condition,
     profileData.hometown,

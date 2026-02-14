@@ -11,7 +11,6 @@
     <view class="header">
       <text class="emoji">📋</text>
       <text class="title">报名登记</text>
-      <text class="subtitle">记录真实的你</text>
     </view>
 
     <!-- 输入区 -->

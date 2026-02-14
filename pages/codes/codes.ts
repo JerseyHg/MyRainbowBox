@@ -58,7 +58,7 @@ Page({
       }
     }
     return {
-      title: '报名登记 - 记录真实的你',
+      title: '报名登记',
       path: '/pages/index/index',
     }
   },

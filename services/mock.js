@@ -149,6 +149,7 @@ function submitProfile(data) {
       // 存储所有表单字段（编辑模式需要回填）
       name: data.name || '',
       gender: data.gender || '',
+      birthday: data.birthday || '',
       age: data.age || 0,
       height: data.height || 0,
       weight: data.weight || 0,
@@ -162,6 +163,7 @@ function submitProfile(data) {
       health_condition: data.health_condition || '',
       hobbies: data.hobbies || [],
       lifestyle: data.lifestyle || '',
+      activity_expectation: data.activity_expectation || '',
       special_requirements: data.special_requirements || '',
       photos: data.photos || [],
     }
@@ -224,10 +226,10 @@ function updateProfile(data) {
         profile[key] = data[key]
       }
     }
+
+    // 重新进入审核
     profile.status = 'pending'
     profile.rejection_reason = ''
-
-    console.log('[Mock] 更新资料成功')
 
     return {
       success: true,
@@ -252,7 +254,10 @@ function archiveProfile() {
 
     profile.status = 'archived'
 
-    return { success: true, message: '已下架' }
+    return {
+      success: true,
+      message: '已下架',
+    }
   })
 }
 
@@ -266,41 +271,31 @@ function deleteProfile() {
       throw new Error('资料不存在')
     }
 
-    if (['pending', 'rejected'].indexOf(profile.status) < 0) {
+    if (profile.status !== 'pending' && profile.status !== 'rejected') {
       throw new Error('当前状态不允许删除')
     }
 
     delete mockDB.profiles[openid]
-    delete mockDB.userCodes[openid]
     wx.removeStorageSync('mock_registered')
 
-    console.log('[Mock] 🗑️ 资料已删除')
-
-    return { success: true, message: '资料已删除' }
+    return {
+      success: true,
+      message: '已删除',
+    }
   })
 }
 
-/** 上传照片（mock：直接返回本地路径作为URL） */
+/** 上传照片 */
 function uploadPhoto(filePath) {
-  return delay(600).then(function () {
-    var mockUrl = '/uploads/photos/mock_' + Date.now() + '.jpg'
-
-    console.log('[Mock] 照片上传成功(模拟):', mockUrl)
-
+  return delay(1000).then(function () {
+    var mockUrl = 'https://picsum.photos/400/400?random=' + Date.now()
+    console.log('[Mock] 照片上传成功:', mockUrl)
     return mockUrl
   })
 }
 
-// ===== Mock 管理操作（方便测试状态切换） =====
+// ===== 测试辅助 =====
 
-/**
- * 模拟审核操作（在控制台调用来切换状态）
- * 用法：
- *   var mock = require('../../services/mock')
- *   mock.mockApprove()   // 模拟通过审核
- *   mock.mockReject('照片不清晰')  // 模拟拒绝
- *   mock.mockPublish()   // 模拟发布
- */
 function mockApprove() {
   var openid = wx.getStorageSync('openid') || ''
   var profile = mockDB.profiles[openid]

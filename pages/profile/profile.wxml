@@ -34,11 +34,20 @@
         </view>
       </view>
 
-      <view class="row">
-        <view class="field col">
-          <text class="label">* 年龄</text>
-          <input class="input" type="number" placeholder="岁" value="{{age}}" bindinput="onInput" data-key="age" />
+      <view class="field">
+        <text class="label">* 生日</text>
+        <picker mode="date" start="1945-01-01" end="2008-12-31" value="{{birthday}}" bindchange="onBirthdayChange">
+          <view class="input picker">
+            {{birthday || '请选择生日'}}
+            <text class="arrow">▾</text>
+          </view>
+        </picker>
+        <view wx:if="{{birthday}}" style="margin-top: 10rpx; font-size: 26rpx; color: #888;">
+          年龄：{{age}}岁 · {{constellation}}
         </view>
+      </view>
+
+      <view class="row">
         <view class="field col">
           <text class="label">* 身高</text>
           <input class="input" type="number" placeholder="cm" value="{{height}}" bindinput="onInput" data-key="height" />
@@ -91,9 +100,9 @@
       <view class="row">
         <view class="field col">
           <text class="label">星座</text>
-          <picker range="{{constellationOptions}}" bindchange="onPick" data-key="constellation">
-            <view class="input picker">{{constellation || '选填'}} <text class="arrow">▾</text></view>
-          </picker>
+          <view class="input" style="color: {{constellation ? '#333' : '#999'}};">
+            {{constellation || '填写生日后自动计算'}}
+          </view>
         </view>
         <view class="field col">
           <text class="label">MBTI</text>
@@ -136,8 +145,8 @@
         <textarea class="textarea" placeholder="简单介绍一下你自己..." value="{{lifestyle}}" bindinput="onInput" data-key="lifestyle" maxlength="300" />
       </view>
       <view class="field" style="margin-bottom:0;">
-        <text class="label">理想生活</text>
-        <textarea class="textarea" placeholder="描述一下你向往的生活方式..." value="{{idealLife}}" bindinput="onInput" data-key="idealLife" maxlength="300" />
+        <text class="label">对活动的期望</text>
+        <textarea class="textarea" placeholder="你希望通过活动获得什么样的体验..." value="{{activityExpectation}}" bindinput="onInput" data-key="activityExpectation" maxlength="300" />
       </view>
     </view>
 
@@ -182,6 +191,7 @@
       <text class="section-label">基本信息</text>
       <view class="pv-row"><text class="pv-l">姓名</text><text class="pv-r">{{name}}</text></view>
       <view class="pv-row"><text class="pv-l">性别</text><text class="pv-r">{{gender}}</text></view>
+      <view class="pv-row" wx:if="{{birthday}}"><text class="pv-l">生日</text><text class="pv-r">{{birthday}}</text></view>
       <view class="pv-row"><text class="pv-l">年龄</text><text class="pv-r">{{age}}岁</text></view>
       <view class="pv-row"><text class="pv-l">身高/体重</text><text class="pv-r">{{height}}cm / {{weight}}kg</text></view>
       <view class="pv-row" wx:if="{{bodyType}}"><text class="pv-l">体型</text><text class="pv-r">{{bodyType}}</text></view>
@@ -201,7 +211,7 @@
       </view>
 
       <view class="pv-row" wx:if="{{lifestyle}}"><text class="pv-l">自我描述</text><text class="pv-r pv-long">{{lifestyle}}</text></view>
-      <view class="pv-row" wx:if="{{idealLife}}"><text class="pv-l">理想生活</text><text class="pv-r pv-long">{{idealLife}}</text></view>
+      <view class="pv-row" wx:if="{{activityExpectation}}"><text class="pv-l">对活动的期望</text><text class="pv-r pv-long">{{activityExpectation}}</text></view>
 
       <text class="section-label">照片</text>
       <view class="pv-photos" wx:if="{{photos.length > 0}}">

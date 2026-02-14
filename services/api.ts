@@ -132,6 +132,7 @@ export function getMyCodes(): Promise<ApiResponse> {
 export interface ProfileData {
   name: string
   gender: string
+  birthday?: string              // ★ 新增：生日 YYYY-MM-DD
   age: number
   height: number
   weight: number
@@ -150,6 +151,7 @@ export interface ProfileData {
   referred_by?: string
   hobbies: string[]
   lifestyle?: string
+  activity_expectation?: string  // ★ 新增：对活动的期望
   coming_out_status?: string
   expectation?: {
     relationship?: string
