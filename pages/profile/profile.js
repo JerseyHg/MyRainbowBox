@@ -447,9 +447,6 @@ Page({
       wx.hideLoading()
       if (result.success && result.data) {
         var p = result.data
-        // ★ 编辑模式：服务器返回的COS URL是完整URL
-        // photos 和 uploadedPhotos 都设为COS URL
-        // COS URL在加了域名白名单后可以直接显示
         var serverPhotos = p.photos || []
 
         that.setData({
@@ -473,10 +470,65 @@ Page({
           photos: serverPhotos,
           uploadedPhotos: serverPhotos,
         })
+
+        // ★ 被拒绝状态 → 检查AI审核开关 → 追加模板到备注
+        if (p.status === 'rejected' && p.rejection_reason) {
+          that._tryAppendAiTemplate(p)
+        }
       }
     }).catch(function (err) {
       wx.hideLoading()
       wx.showToast({ title: '加载失败', icon: 'none' })
+    })
+  },
+
+  /**
+   * ★ 检查AI审核开关，若开启则追加模板到备注末尾
+   * - 只在 AI 审核开启时才执行
+   * - append 到已有备注后面，不覆盖
+   * - 防止重复追加
+   */
+  _tryAppendAiTemplate: function (profileData) {
+    var that = this
+
+    api.getAiReviewEnabled().then(function (res) {
+      if (!res.success || !res.data || !res.data.enabled) {
+        return  // AI 审核未开启，什么都不做
+      }
+
+      // 从拒绝原因中提取模板（两个 --- 之间的内容）
+      var reason = profileData.rejection_reason || ''
+      var startMark = '---\n'
+      var endMark = '\n---'
+      var startIdx = reason.indexOf(startMark)
+      var endIdx = reason.lastIndexOf(endMark)
+
+      if (startIdx === -1 || endIdx === -1 || endIdx <= startIdx) {
+        return  // 没有模板（可能是管理员手动拒绝的），不处理
+      }
+
+      var template = reason.substring(startIdx + startMark.length, endIdx)
+      if (!template.trim()) {
+        return
+      }
+
+      // ★ 追加到现有备注末尾，不删除用户已有内容
+      var existing = that.data.specialRequirements || ''
+      var newContent = ''
+
+      if (existing.trim()) {
+        // 防止重复追加：检查是否已包含模板关键词
+        if (existing.indexOf('感情状态：') !== -1 || existing.indexOf('健康状况：') !== -1) {
+          return
+        }
+        newContent = existing.trim() + '\n\n--- 请补充以下信息 ---\n' + template
+      } else {
+        newContent = template
+      }
+
+      that.setData({ specialRequirements: newContent })
+    }).catch(function (err) {
+      console.warn('[AI Review] 查询开关状态失败:', err)
     })
   },
 

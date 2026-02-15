@@ -244,8 +244,18 @@ export function deletePhoto(photoUrl: string): Promise<ApiResponse> {
   })
 }
 
+/** 查询AI自动审核是否开启 */
+function getAiReviewEnabled() {
+  if (isMockMode()) {
+    return new Promise(function (resolve) {
+      resolve({ success: true, data: { enabled: false } })
+    })
+  }
+  return request({ url: '/profile/ai-review-enabled' })
+}
+
 export default {
   autoLogin, verifyInvitation, getMyCodes,
   submitProfile, getMyProfile, updateProfile, archiveProfile,
-  deleteProfile, uploadPhoto, deletePhoto
+  deleteProfile, uploadPhoto, deletePhoto, getAiReviewEnabled
 }

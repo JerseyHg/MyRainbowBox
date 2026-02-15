@@ -216,6 +216,16 @@ function deletePhoto(photoUrl) {
   })
 }
 
+/** 查询AI自动审核是否开启 */
+function getAiReviewEnabled() {
+  if (isMockMode()) {
+    return new Promise(function (resolve) {
+      resolve({ success: true, data: { enabled: false } })
+    })
+  }
+  return request({ url: '/profile/ai-review-enabled' })
+}
+
 // ===== 导出 =====
 
 module.exports = {
@@ -230,4 +240,5 @@ module.exports = {
   deleteProfile: deleteProfile,
   uploadPhoto: uploadPhoto,
   deletePhoto: deletePhoto,
+  getAiReviewEnabled: getAiReviewEnabled,
 }
