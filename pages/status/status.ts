@@ -134,6 +134,46 @@ Page({
     })
   },
 
+  /** ★ 删除已通过审核的档案 */
+  onDeleteApprovedProfile() {
+    wx.showModal({
+      title: '确认删除档案',
+      content: '您的档案已通过审核。删除后所有信息将被永久移除（包括邀请码），此操作无法恢复。确定要删除吗？',
+      confirmText: '确认删除',
+      confirmColor: '#D32F2F',
+      success: async (res) => {
+        if (res.confirm) {
+          wx.showModal({
+            title: '再次确认',
+            content: '删除操作不可恢复，您确定要永久删除您的档案吗？',
+            confirmText: '永久删除',
+            confirmColor: '#D32F2F',
+            success: async (res2) => {
+              if (res2.confirm) {
+                try {
+                  wx.showLoading({ title: '删除中...', mask: true })
+                  await deleteProfile()
+                  wx.hideLoading()
+
+                  const app = getApp<IAppOption>()
+                  app.clearLogin()
+
+                  wx.showToast({ title: '档案已删除', icon: 'success' })
+                  setTimeout(() => {
+                    wx.reLaunch({ url: '/pages/index/index' })
+                  }, 1500)
+                } catch (err: any) {
+                  wx.hideLoading()
+                  wx.showToast({ title: err.message || '删除失败', icon: 'none' })
+                }
+              }
+            }
+          })
+        }
+      }
+    })
+  },
+
   /** 退出登录 */
   onLogout() {
     wx.showModal({
