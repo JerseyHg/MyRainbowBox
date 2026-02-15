@@ -159,7 +159,7 @@ Page({
 
   onShareAppMessage() {
     return {
-      title: '送你一个邀请码，来登记个人信息吧',
+      title: '送你一个TB报名邀请码！',
       path: '/pages/index/index',
     }
   },

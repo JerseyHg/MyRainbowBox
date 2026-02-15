@@ -10,7 +10,7 @@
     <!-- 顶部 -->
     <view class="header">
       <text class="emoji">📋</text>
-      <text class="title">报名登记</text>
+      <text class="title">TB报名登记</text>
     </view>
 
     <!-- 输入区 -->

@@ -53,12 +53,12 @@ Page({
     const availableCode = this.data.codes.find((c: any) => !c.is_used)
     if (availableCode) {
       return {
-        title: '送你一个邀请码，快来报名吧',
+        title: '送你一个TB邀请码，快来报名吧',
         path: `/pages/index/index?code=${availableCode.code}`,
       }
     }
     return {
-      title: '报名登记',
+      title: 'TB报名助手',
       path: '/pages/index/index',
     }
   },

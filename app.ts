@@ -1,6 +1,6 @@
 /**
  * 小程序入口
- * 信息登记
+ * TBOWO报名助手
  */
 App({
   globalData: {

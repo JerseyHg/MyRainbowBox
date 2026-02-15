@@ -3,11 +3,11 @@
     <text class="main-title">用户隐私保护指引</text>
     <text class="update-info">更新日期：2026年2月12日　生效日期：2026年2月12日</text>
 
-    <text class="intro">感谢您使用我们的小程序。我们非常重视您的隐私保护，本指引将帮助您了解我们如何收集、使用和保护您的个人信息。</text>
+    <text class="intro">感谢您使用TBOWO报名助手。我们非常重视您的隐私保护，本指引将帮助您了解我们如何收集、使用和保护您的个人信息。</text>
 
     <!-- 一、收集的信息 -->
     <text class="section-title">一、我们收集的信息</text>
-    <text class="para">为向您提供信息登记服务，我们可能收集以下信息：</text>
+    <text class="para">为向您提供TBOWO报名服务，我们可能收集以下信息：</text>
     <text class="item">1. 基本信息：昵称、性别、年龄、身高、体重等个人描述信息</text>
     <text class="item">2. 偏好信息：兴趣爱好、生活方式、个人偏好等</text>
     <text class="item">3. 联系方式：（仅用于必要的服务沟通）</text>
@@ -28,7 +28,7 @@
     <text class="item">1. 您的信息存储在安全的服务器中，采用加密传输（HTTPS）</text>
     <text class="item">2. 我们会采取合理的技术和管理措施保护您的信息安全</text>
     <text class="item">3. 仅授权人员可访问您的个人信息，且受严格保密义务约束</text>
-    <text class="item">4. 您可以随时联系我们要求删除您的个人信息</text>
+    <text class="item">4. 您可以随时自主删除您的个人信息</text>
 
     <!-- 四、信息的共享 -->
     <text class="section-title">四、信息的共享</text>
@@ -41,7 +41,7 @@
     <text class="section-title">五、您的权利</text>
     <text class="item">1. 查看权：您有权查看您提交的个人信息</text>
     <text class="item">2. 修改权：您有权修改不准确的个人信息</text>
-    <text class="item">3. 删除权：您有权要求删除您的个人信息</text>
+    <text class="item">3. 删除权：您有权删除您的个人信息</text>
     <text class="item">4. 撤回同意：您有权撤回已授予的同意</text>
 
     <!-- 六、未成年人保护 -->
@@ -55,8 +55,7 @@
     <!-- 八、联系我们 -->
     <text class="section-title">八、联系我们</text>
     <text class="para">如果您对本隐私保护指引有任何疑问、意见或建议，请通过以下方式联系我们：</text>
-    <text class="item">• 小程序内「意见反馈」功能</text>
-    <text class="item">• 客服微信（详见公众号）</text>
+    <text class="item">邮箱：teban.official@gmail.com</text>
 
     <view class="footer">
       <text class="footer-text">— 感谢您的信任 —</text>

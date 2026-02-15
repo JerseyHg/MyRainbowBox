@@ -8,7 +8,7 @@
   ],
   "lazyCodeLoading": "requiredComponents",
   "window": {
-    "navigationBarTitleText": "报名登记",
+    "navigationBarTitleText": "TB报名助手",
     "navigationBarBackgroundColor": "#f0f4f8",
     "navigationBarTextStyle": "black",
     "enablePullDownRefresh": false
