@@ -210,8 +210,8 @@ function deletePhoto(photoUrl) {
     })
   }
   return request({
-    url: '/upload/photo',
-    method: 'DELETE',
+    url: '/upload/photo/delete',
+    method: 'POST',
     data: { url: photoUrl },
   })
 }
