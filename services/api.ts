@@ -230,8 +230,22 @@ export function uploadPhoto(filePath: string): Promise<string> {
   })
 }
 
+/** ★ 删除单张照片（从COS删除） */
+export function deletePhoto(photoUrl: string): Promise<ApiResponse> {
+  if (isMockMode()) {
+    return new Promise((resolve) => {
+      setTimeout(() => resolve({ success: true, message: '删除成功' }), 100)
+    })
+  }
+  return request({
+    url: '/upload/photo/delete',
+    method: 'POST',
+    data: { url: photoUrl },
+  })
+}
+
 export default {
   autoLogin, verifyInvitation, getMyCodes,
   submitProfile, getMyProfile, updateProfile, archiveProfile,
-  deleteProfile, uploadPhoto,
+  deleteProfile, uploadPhoto, deletePhoto
 }
