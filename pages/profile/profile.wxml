@@ -205,6 +205,11 @@
         <text class="pv-block-content">{{activityExpectation}}</text>
       </view>
 
+      <view class="pv-block" wx:if="{{specialRequirements}}">
+        <text class="pv-block-label">备注</text>
+        <text class="pv-block-content">{{specialRequirements}}</text>
+      </view>
+
       <!-- ★ 照片：直接用 photos 数组（COS URL是完整URL，本地是临时路径，都能显示） -->
       <text class="section-label">照片</text>
       <view class="pv-photos" wx:if="{{photos.length > 0}}">
