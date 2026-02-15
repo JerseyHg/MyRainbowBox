@@ -245,7 +245,7 @@ export function deletePhoto(photoUrl: string): Promise<ApiResponse> {
 }
 
 /** 查询AI自动审核是否开启 */
-function getAiReviewEnabled() {
+export function getAiReviewEnabled() {
   if (isMockMode()) {
     return new Promise(function (resolve) {
       resolve({ success: true, data: { enabled: false } })
