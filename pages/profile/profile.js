@@ -245,6 +245,7 @@ Page({
     var that = this
     var i = e.currentTarget.dataset.i
     var serverUrl = that.data.uploadedPhotos[i]
+    console.log('[removePhoto] index:', i, 'serverUrl:', serverUrl, 'uploadedPhotos:', JSON.stringify(that.data.uploadedPhotos))
 
     // 先从界面移除
     var photos = that.data.photos.slice(); photos.splice(i, 1)
