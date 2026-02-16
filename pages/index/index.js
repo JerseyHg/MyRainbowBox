@@ -4,8 +4,11 @@ Page({
   data: {
     code: '',
     loading: false,
-    autoLogging: true,
+    autoLogging: false,
     devMode: false,
+
+    // 隐私勾选状态
+    privacyChecked: false,
   },
 
   onLoad: function (options) {
@@ -13,14 +16,108 @@ Page({
       this.setData({ code: options.code.toUpperCase().slice(0, 6) })
     }
 
+    this._loadOptions = options || {}
+
+    // 先检查是否已经同意过隐私协议
+    this._initPrivacyState()
+  },
+
+  /**
+   * 初始化隐私状态
+   * 如果用户之前已同意过，自动勾选并继续流程
+   */
+  _initPrivacyState: function () {
+    var that = this
+
+    if (wx.getPrivacySetting) {
+      wx.getPrivacySetting({
+        success: function (res) {
+          if (!res.needAuthorization) {
+            // 已授权过：如果有登录态直接跳走，否则不预勾选
+            var openid = wx.getStorageSync('openid')
+            if (openid) {
+              that._continueNormalFlow()
+            }
+          }
+        },
+        fail: function () {
+          var agreed = wx.getStorageSync('privacyAgreed')
+          var openid = wx.getStorageSync('openid')
+          if (agreed && openid) {
+            that._continueNormalFlow()
+          }
+        }
+      })
+    } else {
+      var agreed = wx.getStorageSync('privacyAgreed')
+      var openid = wx.getStorageSync('openid')
+      if (agreed && openid) {
+        that._continueNormalFlow()
+      }
+    }
+  },
+
+  /**
+   * 用户点击勾选框
+   */
+  togglePrivacyCheck: function () {
+    var that = this
+    var newVal = !that.data.privacyChecked
+
+    if (newVal) {
+      // 勾选 → 触发官方隐私授权
+      if (wx.requirePrivacyAuthorize) {
+        wx.requirePrivacyAuthorize({
+          success: function () {
+            wx.setStorageSync('privacyAgreed', true)
+            that.setData({ privacyChecked: true })
+          },
+          fail: function () {
+            // 用户在系统弹窗中拒绝了
+            that.setData({ privacyChecked: false })
+            wx.showToast({ title: '需要同意隐私协议才能使用', icon: 'none' })
+          }
+        })
+      } else {
+        // 低版本直接勾选
+        wx.setStorageSync('privacyAgreed', true)
+        that.setData({ privacyChecked: true })
+      }
+    } else {
+      // 取消勾选
+      that.setData({ privacyChecked: false })
+    }
+  },
+
+  /**
+   * 打开隐私协议详情
+   */
+  openPrivacyDetail: function () {
+    if (wx.openPrivacyContract) {
+      wx.openPrivacyContract({
+        fail: function () {
+          wx.navigateTo({ url: '/pages/privacy/privacy' })
+        }
+      })
+    } else {
+      wx.navigateTo({ url: '/pages/privacy/privacy' })
+    }
+  },
+
+  /**
+   * 继续正常流程（自动登录等）
+   */
+  _continueNormalFlow: function () {
+    var options = this._loadOptions || {}
+
     var openid = wx.getStorageSync('openid')
     if (openid) {
       var hasProfile = wx.getStorageSync('hasProfile')
-      this._checkPrivacyThenNavigate(hasProfile)
+      this._navigateByProfile(hasProfile)
       return
     }
 
-    if (options && options.from === 'logout') {
+    if (options.from === 'logout') {
       this.setData({ autoLogging: false })
       return
     }
@@ -43,7 +140,7 @@ Page({
           if (result.success && result.openid) {
             var app = getApp()
             app.saveLogin(result.openid, result.has_profile)
-            that._checkPrivacyThenNavigate(result.has_profile)
+            that._navigateByProfile(result.has_profile)
           } else {
             that.setData({ autoLogging: false })
           }
@@ -64,6 +161,11 @@ Page({
   },
 
   onSubmit: function () {
+    if (!this.data.privacyChecked) {
+      wx.showToast({ title: '请先勾选同意隐私保护指引', icon: 'none' })
+      return
+    }
+
     if (this.data.code.length < 6) {
       wx.showToast({ title: '请输入完整的6位邀请码', icon: 'none' })
       return
@@ -89,9 +191,7 @@ Page({
           if (result.success && result.openid) {
             var app = getApp()
             app.saveLogin(result.openid, result.has_profile)
-
-            // 验证成功 → 检查隐私协议（直接跳页面，不弹 modal）
-            that._checkPrivacyThenNavigate(result.has_profile)
+            that._navigateByProfile(result.has_profile)
           } else {
             wx.showToast({ title: result.message || '验证失败', icon: 'none' })
           }
@@ -110,6 +210,11 @@ Page({
   },
 
   onRelogin: function () {
+    if (!this.data.privacyChecked) {
+      wx.showToast({ title: '请先勾选同意隐私保护指引', icon: 'none' })
+      return
+    }
+
     var that = this
     that.setData({ loading: true })
     wx.showLoading({ title: '登录中...' })
@@ -129,7 +234,7 @@ Page({
           if (result.success && result.openid) {
             var app = getApp()
             app.saveLogin(result.openid, result.has_profile)
-            that._checkPrivacyThenNavigate(result.has_profile)
+            that._navigateByProfile(result.has_profile)
           } else {
             wx.showToast({ title: '未找到登记记录，请先使用邀请码登记', icon: 'none' })
           }
@@ -140,22 +245,6 @@ Page({
         })
       }
     })
-  },
-
-  /**
-   * 隐私协议检查
-   * 已同意 → 直接跳转目标页
-   * 未同意 → 跳转到隐私协议页面（用户在那里点同意后再跳转）
-   */
-  _checkPrivacyThenNavigate: function (hasProfile) {
-    var agreed = wx.getStorageSync('privacyAgreed')
-    var target = hasProfile ? 'status' : 'profile'
-
-    if (agreed) {
-      this._navigateByProfile(hasProfile)
-    } else {
-      wx.redirectTo({ url: '/pages/privacy/privacy?from=login&target=' + target })
-    }
   },
 
   _navigateByProfile: function (hasProfile) {
@@ -169,12 +258,7 @@ Page({
   onDevSkip: function () {
     var app = getApp()
     app.saveLogin('dev_openid_123', false)
-    wx.setStorageSync('privacyAgreed', true)
     wx.redirectTo({ url: '/pages/profile/profile' })
-  },
-
-  goPrivacy: function () {
-    wx.navigateTo({ url: '/pages/privacy/privacy' })
   },
 
   onShareAppMessage: function () {

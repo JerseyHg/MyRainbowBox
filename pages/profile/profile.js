@@ -137,42 +137,22 @@ Page({
       return
     }
 
-    if (wx.chooseMedia) {
-      wx.chooseMedia({
-        count: remaining,
-        mediaType: ['image'],
-        sourceType: ['album', 'camera'],
-        sizeType: ['compressed'],
-        success: function (res) {
-          var filePaths = []
-          for (var i = 0; i < res.tempFiles.length; i++) {
-            filePaths.push(res.tempFiles[i].tempFilePath)
-          }
-          that._handleChosenPhotos(filePaths)
-        },
-        fail: function (err) {
-          if (err.errMsg && err.errMsg.indexOf('cancel') >= 0) return
-          that._fallbackChooseImage(remaining)
-        }
-      })
-    } else {
-      that._fallbackChooseImage(remaining)
-    }
-  },
-
-  _fallbackChooseImage: function (remaining) {
-    var that = this
-    wx.chooseImage({
+    wx.chooseMedia({
       count: remaining,
+      mediaType: ['image'],
       sourceType: ['album', 'camera'],
       sizeType: ['compressed'],
       success: function (res) {
-        that._handleChosenPhotos(res.tempFilePaths)
+        var filePaths = []
+        for (var i = 0; i < res.tempFiles.length; i++) {
+          filePaths.push(res.tempFiles[i].tempFilePath)
+        }
+        that._handleChosenPhotos(filePaths)
       },
       fail: function (err) {
-        if (err.errMsg && err.errMsg.indexOf('cancel') === -1) {
-          wx.showToast({ title: '无法选择照片', icon: 'none' })
-        }
+        if (err.errMsg && err.errMsg.indexOf('cancel') >= 0) return
+        console.error('[chooseMedia] fail:', err)
+        wx.showToast({ title: '无法选择照片', icon: 'none' })
       }
     })
   },

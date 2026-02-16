@@ -6,7 +6,7 @@
   </view>
 
   <!-- 正常邀请码输入页 -->
-  <view wx:else>
+  <view wx:if="{{!autoLogging}}">
     <!-- 顶部 -->
     <view class="header">
       <text class="emoji">📋</text>
@@ -24,10 +24,24 @@
         maxlength="6"
         class="input"
       />
+
+      <!-- ★ 隐私协议勾选框 -->
+      <view class="privacy-check-row">
+        <view class="checkbox-wrap" bindtap="togglePrivacyCheck">
+          <view class="checkbox {{privacyChecked ? 'checked' : ''}}">
+            <text wx:if="{{privacyChecked}}" class="check-icon">✓</text>
+          </view>
+        </view>
+        <view class="privacy-check-text-wrap">
+          <text class="privacy-check-text">我已阅读并同意</text>
+          <text class="privacy-check-link" bindtap="openPrivacyDetail">《用户隐私保护指引》</text>
+        </view>
+      </view>
+
       <button
         class="btn-main"
         bindtap="onSubmit"
-        disabled="{{loading || code.length < 6}}"
+        disabled="{{loading || code.length < 6 || !privacyChecked}}"
       >{{loading ? '验证中...' : '开始报名'}}</button>
     </view>
 
@@ -37,13 +51,8 @@
     </view>
 
     <!-- 已注册用户直接登录 -->
-    <button class="btn-relogin" bindtap="onRelogin" disabled="{{loading}}">已报名？直接登录</button>
-
-    <!-- 隐私协议入口 -->
-    <view class="privacy-link">
-      <text class="privacy-text" bindtap="goPrivacy">报名即表示同意</text>
-      <text class="privacy-link-text" bindtap="goPrivacy">《用户隐私保护指引》</text>
-    </view>
+    <button class="btn-relogin" bindtap="onRelogin" disabled="{{loading || !privacyChecked}}">已报名？直接登录</button>
+    <text class="relogin-hint" wx:if="{{!privacyChecked}}">请先勾选同意隐私保护指引</text>
 
     <!-- 开发按钮 -->
     <button class="btn-dev" wx:if="{{devMode}}" bindtap="onDevSkip">开发模式：跳过验证</button>

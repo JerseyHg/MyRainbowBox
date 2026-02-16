@@ -1,34 +1,19 @@
 Page({
-  data: {
-    fromLogin: false,
-    target: '',  // 'profile' 或 'status'
+  data: {},
+
+  onLoad: function () {
+    // 隐私协议详情查看页，不再有授权逻辑
+    // 主授权流程已在首页弹窗中通过官方按钮完成
   },
 
-  onLoad: function (options) {
-    if (options && options.from === 'login') {
-      this.setData({
-        fromLogin: true,
-        target: options.target || 'profile',
+  /** 打开平台配置的隐私协议全文 */
+  openPrivacyContract: function () {
+    if (wx.openPrivacyContract) {
+      wx.openPrivacyContract({
+        fail: function () {
+          wx.showToast({ title: '打开隐私协议失败', icon: 'none' })
+        }
       })
     }
-  },
-
-  /** 用户点击"我已阅读并同意" */
-  onAgree: function () {
-    wx.setStorageSync('privacyAgreed', true)
-
-    var target = this.data.target
-    if (target === 'status') {
-      wx.redirectTo({ url: '/pages/status/status' })
-    } else {
-      wx.redirectTo({ url: '/pages/profile/profile' })
-    }
-  },
-
-  /** 用户点击"不同意" → 清除登录态，回首页 */
-  onDisagree: function () {
-    var app = getApp()
-    app.clearLogin()
-    wx.reLaunch({ url: '/pages/index/index?from=logout' })
   },
 })
